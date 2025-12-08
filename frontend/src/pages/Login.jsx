@@ -6,6 +6,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [email, setEmail] = useState('admin@church.local');
   const [password, setPassword] = useState('Admin123!@#');
   const [loading, setLoading] = useState(false);
