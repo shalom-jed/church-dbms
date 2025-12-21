@@ -1,55 +1,76 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axiosClient.js';
+import { Bar, Pie, Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 export default function Reports() {
-  const [dashboard, setDashboard] = useState(null);
-  const [members, setMembers] = useState(null);
-  const [donations, setDonations] = useState(null);
+  const [data, setData] = useState({ members: null, donations: null, attendance: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      api.get('/reports/dashboard'),
       api.get('/reports/members'),
       api.get('/reports/donations'),
-    ])
-      .then(([d1, d2, d3]) => {
-        setDashboard(d1.data);
-        setMembers(d2.data);
-        setDonations(d3.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      api.get('/reports/attendance')
+    ]).then(([m, d, a]) => {
+      setData({ members: m.data, donations: d.data, attendance: a.data });
+    }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-xs text-slate-300">Loading reports...</div>;
+  if (loading) return <div>Loading Analytics...</div>;
+
+  // Prepare Data for Charts
+  const ageData = {
+    labels: data.members.ageGroups.map(a => a._id),
+    datasets: [{ label: 'Members by Age', data: data.members.ageGroups.map(a => a.count), backgroundColor: '#6366f1' }]
+  };
+
+  const ministryData = {
+    labels: data.members.byMinistry.map(m => m._id || 'None'),
+    datasets: [{ data: data.members.byMinistry.map(m => m.count), backgroundColor: ['#f472b6', '#22c55e', '#eab308', '#3b82f6'] }]
+  };
+
+  const donationData = {
+    labels: data.donations.totalByPeriod.map(d => `${d._id.month}/${d._id.year}`),
+    datasets: [{ label: 'Donations ($)', data: data.donations.totalByPeriod.map(d => d.total), borderColor: '#22c55e', tension: 0.3 }]
+  };
 
   return (
-    <div className="space-y-4 text-xs">
-      <h1 className="text-xl font-semibold">Reports</h1>
-
-      <div className="border border-slate-800 rounded p-3 bg-slate-900">
-        <h2 className="font-semibold mb-2">Summary</h2>
-        <p className="text-slate-300">
-          Members: {dashboard?.totalMembers ?? 0} · Groups:{' '}
-          {dashboard?.totalGroups ?? 0} · Total Donations: $
-          {dashboard?.totalDonations?.toFixed?.(2) ?? '0.00'}
-        </p>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Analytics & Reports</h1>
+      
+      {/* Row 1: Demographics */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+          <h3 className="text-lg font-semibold mb-4 text-slate-300">Age Demographics</h3>
+          <Bar data={ageData} />
+        </div>
+        <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+          <h3 className="text-lg font-semibold mb-4 text-slate-300">Ministry Distribution</h3>
+          <div className="h-64 flex justify-center"><Pie data={ministryData} /></div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="border border-slate-800 rounded p-3 bg-slate-900">
-          <h3 className="font-semibold mb-2">Members by Month (raw)</h3>
-          <pre className="text-[10px] text-slate-300 whitespace-pre-wrap">
-            {JSON.stringify(members?.membersByMonth, null, 2)}
-          </pre>
-        </div>
-        <div className="border border-slate-800 rounded p-3 bg-slate-900">
-          <h3 className="font-semibold mb-2">Donations by Period (raw)</h3>
-          <pre className="text-[10px] text-slate-300 whitespace-pre-wrap">
-            {JSON.stringify(donations?.totalByPeriod, null, 2)}
-          </pre>
-        </div>
+      {/* Row 2: Financials */}
+      <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+        <h3 className="text-lg font-semibold mb-4 text-slate-300">Donation Trends</h3>
+        <Line data={donationData} />
+      </div>
+
+      {/* Row 3: CSV Exports */}
+      <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 flex gap-4">
+         <a href="http://localhost:5000/api/members/export" target="_blank" rel="noreferrer" 
+            className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded text-white text-sm">
+            📥 Download Member CSV
+         </a>
+         <a href="http://localhost:5000/api/donations/export" target="_blank" rel="noreferrer" 
+            className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded text-white text-sm">
+            📥 Download Donation CSV
+         </a>
       </div>
     </div>
   );
