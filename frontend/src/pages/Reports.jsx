@@ -23,27 +23,25 @@ export default function Reports() {
 
   if (loading) return <div>Loading Analytics...</div>;
 
-  // Prepare Data for Charts
   const ageData = {
-    labels: data.members.ageGroups.map(a => a._id),
-    datasets: [{ label: 'Members by Age', data: data.members.ageGroups.map(a => a.count), backgroundColor: '#6366f1' }]
+    labels: data.members?.ageGroups.map(a => a._id),
+    datasets: [{ label: 'Members by Age', data: data.members?.ageGroups.map(a => a.count), backgroundColor: '#6366f1' }]
   };
 
   const ministryData = {
-    labels: data.members.byMinistry.map(m => m._id || 'None'),
-    datasets: [{ data: data.members.byMinistry.map(m => m.count), backgroundColor: ['#f472b6', '#22c55e', '#eab308', '#3b82f6'] }]
+    labels: data.members?.byMinistry.map(m => m._id || 'None'),
+    datasets: [{ data: data.members?.byMinistry.map(m => m.count), backgroundColor: ['#f472b6', '#22c55e', '#eab308', '#3b82f6', '#a855f7'] }]
   };
 
   const donationData = {
-    labels: data.donations.totalByPeriod.map(d => `${d._id.month}/${d._id.year}`),
-    datasets: [{ label: 'Donations ($)', data: data.donations.totalByPeriod.map(d => d.total), borderColor: '#22c55e', tension: 0.3 }]
+    labels: data.donations?.totalByPeriod.map(d => `${d._id.month}/${d._id.year}`),
+    datasets: [{ label: 'Donations ($)', data: data.donations?.totalByPeriod.map(d => d.total), borderColor: '#22c55e', tension: 0.3 }]
   };
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Analytics & Reports</h1>
       
-      {/* Row 1: Demographics */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
           <h3 className="text-lg font-semibold mb-4 text-slate-300">Age Demographics</h3>
@@ -55,13 +53,11 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Row 2: Financials */}
       <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
         <h3 className="text-lg font-semibold mb-4 text-slate-300">Donation Trends</h3>
         <Line data={donationData} />
       </div>
 
-      {/* Row 3: CSV Exports */}
       <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 flex gap-4">
          <a href="http://localhost:5000/api/members/export" target="_blank" rel="noreferrer" 
             className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded text-white text-sm">

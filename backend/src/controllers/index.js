@@ -9,9 +9,11 @@ const Donation = require('../models/Donation');
 const cloudinary = require('../config/cloudinary');
 const { generateToken } = require('../utils/jwt');
 const { sendCsv } = require('../utils/csv');
+
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
+
 // ===== Auth Controllers =====
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -29,9 +31,11 @@ const login = asyncHandler(async (req, res) => {
     user: { id: user._id, name: user.name, email: user.email, role: user.role },
   });
 });
+
 const getMe = asyncHandler(async (req, res) => {
   res.json(req.user);
 });
+
 const seedAdmin = asyncHandler(async (req, res) => {
   const existing = await User.findOne({ role: 'admin' });
   if (existing) return res.json({ message: 'Admin already exists' });
@@ -43,6 +47,7 @@ const seedAdmin = asyncHandler(async (req, res) => {
   });
   res.json({ message: 'Admin created', admin: { id: admin._id, email: admin.email } });
 });
+
 // ===== Member Controllers =====
 const createMember = asyncHandler(async (req, res) => {
   const { profilePhotoBase64, ...rest } = req.body;
@@ -57,6 +62,7 @@ const createMember = asyncHandler(async (req, res) => {
   const member = await Member.create({ ...rest, profilePhotoUrl });
   res.status(201).json(member);
 });
+
 const getMembers = asyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -87,11 +93,13 @@ const getMembers = asyncHandler(async (req, res) => {
   ]);
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 });
+
 const getMember = asyncHandler(async (req, res) => {
   const member = await Member.findById(req.params.id).populate('smallGroup');
   if (!member) return res.status(404).json({ message: 'Member not found' });
   res.json(member);
 });
+
 const updateMember = asyncHandler(async (req, res) => {
   const { profilePhotoBase64, ...rest } = req.body;
   const update = { ...rest };
@@ -106,11 +114,13 @@ const updateMember = asyncHandler(async (req, res) => {
   if (!member) return res.status(404).json({ message: 'Member not found' });
   res.json(member);
 });
+
 const deleteMember = asyncHandler(async (req, res) => {
   const member = await Member.findByIdAndDelete(req.params.id);
   if (!member) return res.status(404).json({ message: 'Member not found' });
   res.json({ message: 'Member deleted' });
 });
+
 const importMembers = asyncHandler(async (req, res) => {
   // Expect array of JSON objects (already parsed from CSV on frontend)
   const { rows } = req.body; // [{ fullName, gender, ... }]
@@ -118,6 +128,7 @@ const importMembers = asyncHandler(async (req, res) => {
   const created = await Member.insertMany(rows);
   res.json({ inserted: created.length });
 });
+
 const exportMembers = asyncHandler(async (req, res) => {
   const members = await Member.find().populate('smallGroup', 'name');
   const rows = members.map((m) => ({
@@ -142,11 +153,13 @@ const exportMembers = asyncHandler(async (req, res) => {
   ];
   sendCsv(res, 'members.csv', columns, rows);
 });
+
 // ===== Small Group Controllers =====
 const createGroup = asyncHandler(async (req, res) => {
   const group = await SmallGroup.create(req.body);
   res.status(201).json(group);
 });
+
 const getGroups = asyncHandler(async (req, res) => {
   const { search } = req.query;
   const filter = {};
@@ -154,34 +167,66 @@ const getGroups = asyncHandler(async (req, res) => {
   const groups = await SmallGroup.find(filter).populate('leader', 'fullName').populate('members', 'fullName');
   res.json(groups);
 });
+
 const updateGroup = asyncHandler(async (req, res) => {
   const group = await SmallGroup.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!group) return res.status(404).json({ message: 'Group not found' });
   res.json(group);
 });
+
+// UPDATED: Deleting a group now unassigns members
 const deleteGroup = asyncHandler(async (req, res) => {
-  const group = await SmallGroup.findByIdAndDelete(req.params.id);
+  const group = await SmallGroup.findById(req.params.id);
   if (!group) return res.status(404).json({ message: 'Group not found' });
-  res.json({ message: 'Group deleted' });
+
+  // Remove this group ID from all members who were in it
+  await Member.updateMany(
+    { smallGroup: group._id },
+    { $unset: { smallGroup: "" } }
+  );
+
+  await group.deleteOne();
+  res.json({ message: 'Group deleted and members unassigned' });
 });
+
+// UPDATED: Assigns member to group AND updates member profile
 const assignMemberToGroup = asyncHandler(async (req, res) => {
   const { memberId } = req.body;
+  
+  // 1. Add Member to the Group's "members" array
   const group = await SmallGroup.findByIdAndUpdate(
     req.params.id,
     { $addToSet: { members: memberId } },
     { new: true }
   ).populate('members', 'fullName');
+
+  if (!group) return res.status(404).json({ message: 'Group not found' });
+
+  // 2. Set the Member's "smallGroup" field to this Group ID
+  await Member.findByIdAndUpdate(memberId, { smallGroup: req.params.id });
+
   res.json(group);
 });
+
+// UPDATED: Removes member from group AND clears member profile
 const removeMemberFromGroup = asyncHandler(async (req, res) => {
   const { memberId } = req.body;
+  
+  // 1. Remove Member from the Group's "members" array
   const group = await SmallGroup.findByIdAndUpdate(
     req.params.id,
     { $pull: { members: memberId } },
     { new: true }
   ).populate('members', 'fullName');
+
+  if (!group) return res.status(404).json({ message: 'Group not found' });
+
+  // 2. Clear the Member's "smallGroup" field
+  await Member.findByIdAndUpdate(memberId, { $unset: { smallGroup: "" } });
+
   res.json(group);
 });
+
 // ===== Attendance Controllers =====
 const markAttendance = asyncHandler(async (req, res) => {
   const { date, smallGroup, records } = req.body; // records: [{ member, status }]
@@ -200,6 +245,7 @@ const markAttendance = asyncHandler(async (req, res) => {
   await Attendance.bulkWrite(ops);
   res.json({ message: 'Attendance saved' });
 });
+
 const getAttendanceByDate = asyncHandler(async (req, res) => {
   const { date, smallGroup } = req.query;
   if (!date) return res.status(400).json({ message: 'date is required' });
@@ -210,6 +256,7 @@ const getAttendanceByDate = asyncHandler(async (req, res) => {
     .populate('smallGroup', 'name');
   res.json(records);
 });
+
 const getMemberAttendance = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
   const filter = { member: req.params.memberId };
@@ -221,11 +268,13 @@ const getMemberAttendance = asyncHandler(async (req, res) => {
   const records = await Attendance.find(filter).sort({ date: 1 });
   res.json(records);
 });
+
 // ===== Event Controllers =====
 const createEvent = asyncHandler(async (req, res) => {
   const event = await Event.create(req.body);
   res.status(201).json(event);
 });
+
 const getEvents = asyncHandler(async (req, res) => {
   const { upcoming } = req.query;
   const now = new Date();
@@ -234,21 +283,25 @@ const getEvents = asyncHandler(async (req, res) => {
   const events = await Event.find(filter).sort({ date: 1 });
   res.json(events);
 });
+
 const updateEvent = asyncHandler(async (req, res) => {
   const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!event) return res.status(404).json({ message: 'Event not found' });
   res.json(event);
 });
+
 const deleteEvent = asyncHandler(async (req, res) => {
   const event = await Event.findByIdAndDelete(req.params.id);
   if (!event) return res.status(404).json({ message: 'Event not found' });
   res.json({ message: 'Event deleted' });
 });
+
 // ===== Donation Controllers =====
 const createDonation = asyncHandler(async (req, res) => {
   const donation = await Donation.create(req.body);
   res.status(201).json(donation);
 });
+
 const getDonations = asyncHandler(async (req, res) => {
   const { from, to, type } = req.query;
   const filter = {};
@@ -261,16 +314,19 @@ const getDonations = asyncHandler(async (req, res) => {
   const donations = await Donation.find(filter).sort({ date: -1 });
   res.json(donations);
 });
+
 const updateDonation = asyncHandler(async (req, res) => {
   const donation = await Donation.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!donation) return res.status(404).json({ message: 'Donation not found' });
   res.json(donation);
 });
+
 const deleteDonation = asyncHandler(async (req, res) => {
   const donation = await Donation.findByIdAndDelete(req.params.id);
   if (!donation) return res.status(404).json({ message: 'Donation not found' });
   res.json({ message: 'Donation deleted' });
 });
+
 const exportDonations = asyncHandler(async (req, res) => {
   const donations = await Donation.find().sort({ date: -1 });
   const rows = donations.map((d) => ({
@@ -287,6 +343,7 @@ const exportDonations = asyncHandler(async (req, res) => {
   ];
   sendCsv(res, 'donations.csv', columns, rows);
 });
+
 // ===== Reports Controllers =====
 const dashboardStats = asyncHandler(async (req, res) => {
   const [
@@ -328,6 +385,7 @@ const dashboardStats = asyncHandler(async (req, res) => {
     attendanceTrend,
   });
 });
+
 const memberReports = asyncHandler(async (req, res) => {
   const membersByMonth = await Member.aggregate([
     {
@@ -369,6 +427,7 @@ const memberReports = asyncHandler(async (req, res) => {
   ]);
   res.json({ membersByMonth, ageGroups, genders, byMinistry, byGroup });
 });
+
 const attendanceReports = asyncHandler(async (req, res) => {
   const { from, to, smallGroup, ministry } = req.query;
   const match = {};
@@ -424,6 +483,7 @@ const attendanceReports = asyncHandler(async (req, res) => {
   ]);
   res.json({ daily, byGroup, byMember });
 });
+
 const donationReports = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
   const match = {};
@@ -453,6 +513,7 @@ const donationReports = asyncHandler(async (req, res) => {
   ]);
   res.json({ totalByPeriod, byType, byDate });
 });
+
 const groupReports = asyncHandler(async (req, res) => {
   const groupSizes = await SmallGroup.aggregate([
     { $project: { name: 1, size: { $size: '$members' } } },
@@ -468,6 +529,7 @@ const groupReports = asyncHandler(async (req, res) => {
   ]);
   res.json({ groupSizes, attendanceByGroup });
 });
+
 const eventReports = asyncHandler(async (req, res) => {
   const now = new Date();
   const upcoming = await Event.countDocuments({ date: { $gte: now } });
@@ -483,6 +545,7 @@ const eventReports = asyncHandler(async (req, res) => {
   ]);
   res.json({ upcoming, past, byMonth });
 });
+
 module.exports = {
   // auth
   login,

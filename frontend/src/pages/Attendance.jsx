@@ -1,4 +1,3 @@
-// frontend/src/pages/Attendance.jsx
 import { useEffect, useState } from 'react';
 import api from '../api/axiosClient.js';
 
@@ -9,25 +8,20 @@ export default function Attendance() {
   const [attendanceList, setAttendanceList] = useState([]); // [{ memberId, name, status }]
   const [loading, setLoading] = useState(false);
 
-  // Load groups on mount
   useEffect(() => {
     api.get('/groups').then(res => setGroups(res.data)).catch(console.error);
   }, []);
 
-  // Fetch members of selected group AND existing attendance for that date
   const loadAttendanceSheet = async () => {
     if (!selectedGroupId) return;
     setLoading(true);
     try {
-      // 1. Get Group Members
       const groupRes = await api.get('/groups'); 
       const group = groupRes.data.find(g => g._id === selectedGroupId);
       
-      // 2. Get Existing Attendance
       const attRes = await api.get('/attendance', { params: { date, smallGroup: selectedGroupId } });
       const existingMap = new Map(attRes.data.map(r => [r.member._id, r.status]));
 
-      // 3. Merge
       const sheet = group.members.map(m => ({
         member: m._id,
         fullName: m.fullName,
@@ -80,7 +74,7 @@ export default function Attendance() {
         </button>
       </div>
 
-      {loading ? <div>Loading...</div> : (
+      {loading ? <div className="text-slate-400">Loading sheet...</div> : (
         attendanceList.length > 0 && (
           <div className="border border-slate-800 rounded overflow-hidden">
             <table className="w-full text-left">

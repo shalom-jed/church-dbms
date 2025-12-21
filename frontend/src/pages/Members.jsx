@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosClient.js';
-import Papa from 'papaparse'; // Import papaparse for CSV
+import Papa from 'papaparse';
 
 export default function Members() {
+  const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  
   const [formData, setFormData] = useState({
     fullName: '', gender: 'male', phone: '', address: '', ministry: '', dateOfBirth: '', profilePhotoBase64: ''
   });
@@ -13,7 +17,7 @@ export default function Members() {
   const loadMembers = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/members?limit=50');
+      const res = await api.get('/members?limit=100'); 
       setMembers(res.data.items || []);
     } catch (e) { console.error(e); } 
     finally { setLoading(false); }
@@ -26,7 +30,6 @@ export default function Members() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Convert Image to Base64 for Backend
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -38,11 +41,37 @@ export default function Members() {
     }
   };
 
+  const handleEdit = (e, member) => {
+    e.stopPropagation(); // Prevent row click navigation
+    setEditingId(member._id);
+    setFormData({
+      fullName: member.fullName,
+      gender: member.gender,
+      phone: member.phone || '',
+      address: member.address || '',
+      ministry: member.ministry || '',
+      dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split('T')[0] : '',
+      profilePhotoBase64: ''
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation(); // Prevent row click navigation
+    if (!window.confirm("Are you sure you want to delete this member?")) return;
+    try { await api.delete(`/members/${id}`); loadMembers(); } catch (e) { alert('Delete failed'); }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/members', formData);
+      if (editingId) {
+        await api.put(`/members/${editingId}`, formData);
+      } else {
+        await api.post('/members', formData);
+      }
       setShowModal(false);
+      setEditingId(null);
       setFormData({ fullName: '', gender: 'male', phone: '', address: '', ministry: '', dateOfBirth: '', profilePhotoBase64: '' });
       loadMembers();
     } catch (e) { alert('Failed to save member'); }
@@ -55,7 +84,6 @@ export default function Members() {
       header: true,
       complete: async (results) => {
         try {
-          // Send parsed JSON rows to backend
           await api.post('/members/import', { rows: results.data });
           alert('Import successful!');
           loadMembers();
@@ -69,23 +97,25 @@ export default function Members() {
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Members</h1>
         <div className="flex gap-2">
-          {/* CSV Import Button */}
-          <label className="cursor-pointer bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-white">
+          <a href="http://localhost:5000/api/members/export" target="_blank" rel="noreferrer" 
+             className="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-white flex items-center">
+             Export CSV
+          </a>
+          <label className="cursor-pointer bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-white flex items-center">
             Import CSV
             <input type="file" accept=".csv" className="hidden" onChange={handleCSVImport} />
           </label>
-          <button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white">
+          <button onClick={() => { setEditingId(null); setShowModal(true); }} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-medium">
             + Add Member
           </button>
         </div>
       </div>
 
-      {/* Modal Form */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
           <div className="bg-slate-900 border border-slate-700 p-6 rounded-lg w-full max-w-lg relative">
             <button onClick={() => setShowModal(false)} className="absolute top-2 right-2 text-slate-400 hover:text-white">✕</button>
-            <h2 className="text-lg font-bold mb-4">Add New Member</h2>
+            <h2 className="text-lg font-bold mb-4">{editingId ? 'Edit Member' : 'Add New Member'}</h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="block text-slate-400 mb-1">Full Name</label>
@@ -119,36 +149,47 @@ export default function Members() {
                 <label className="block text-slate-400 mb-1">Profile Photo</label>
                 <input type="file" onChange={handleFileChange} className="w-full text-slate-400" />
               </div>
-              <button type="submit" className="col-span-2 bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-bold mt-2">Save Member</button>
+              <button type="submit" className="col-span-2 bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-bold mt-2">
+                {editingId ? 'Update Member' : 'Save Member'}
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Members Table */}
-      {loading ? <div className="text-slate-400">Loading...</div> : (
+      {loading ? <div className="text-slate-400">Loading members...</div> : (
         <div className="overflow-x-auto border border-slate-800 rounded">
           <table className="min-w-full text-left">
             <thead className="bg-slate-900">
               <tr>
                 <th className="px-3 py-2 border-b border-slate-800">Photo</th>
                 <th className="px-3 py-2 border-b border-slate-800">Name</th>
+                <th className="px-3 py-2 border-b border-slate-800">Birthday</th>
                 <th className="px-3 py-2 border-b border-slate-800">Ministry</th>
                 <th className="px-3 py-2 border-b border-slate-800">Phone</th>
-                <th className="px-3 py-2 border-b border-slate-800">Actions</th>
+                <th className="px-3 py-2 border-b border-slate-800 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {members.map((m) => (
-                <tr key={m._id} className="odd:bg-slate-900/40 hover:bg-slate-800/50">
+                <tr 
+                  key={m._id} 
+                  className="odd:bg-slate-900/40 hover:bg-slate-800/50 cursor-pointer"
+                  onClick={() => navigate(`/members/${m._id}`)}
+                >
                   <td className="px-3 py-1.5 border-b border-slate-800">
                     <img src={m.profilePhotoUrl || 'https://via.placeholder.com/30'} alt="" className="w-8 h-8 rounded-full object-cover" />
                   </td>
-                  <td className="px-3 py-1.5 border-b border-slate-800 font-medium">{m.fullName}</td>
+                  <td className="px-3 py-1.5 border-b border-slate-800 font-medium text-indigo-300">{m.fullName}</td>
+                  {/* Added Birthday Column */}
+                  <td className="px-3 py-1.5 border-b border-slate-800">
+                    {m.dateOfBirth ? new Date(m.dateOfBirth).toLocaleDateString() : '-'}
+                  </td>
                   <td className="px-3 py-1.5 border-b border-slate-800">{m.ministry || '-'}</td>
                   <td className="px-3 py-1.5 border-b border-slate-800">{m.phone || '-'}</td>
-                  <td className="px-3 py-1.5 border-b border-slate-800">
-                    <button className="text-sky-400 hover:underline">Edit</button>
+                  <td className="px-3 py-1.5 border-b border-slate-800 text-right gap-2">
+                    <button onClick={(e) => handleEdit(e, m)} className="text-sky-400 hover:underline mr-3">Edit</button>
+                    <button onClick={(e) => handleDelete(e, m._id)} className="text-red-400 hover:underline">Delete</button>
                   </td>
                 </tr>
               ))}

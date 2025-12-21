@@ -1,108 +1,151 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axiosClient.js';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Line, Doughnut, Bar, Pie } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Tooltip,
-  Legend,
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, BarElement, Tooltip, Legend,
 } from 'chart.js';
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  BarElement,
-  Tooltip,
-  Legend
-);
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, BarElement, Tooltip, Legend);
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [memberStats, setMemberStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    api.get('/reports/dashboard').then((res) => setStats(res.data));
+    const fetchData = async () => {
+      try {
+        const [dashRes, memRes] = await Promise.all([
+          api.get('/reports/dashboard'),
+          api.get('/reports/members')
+        ]);
+        setStats(dashRes.data);
+        setMemberStats(memRes.data);
+      } catch (error) {
+        console.error("Dashboard load failed", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-  if (!stats) return <div className='text-xs text-slate-300'>Loading dashboard...</div>;
-  const attendanceLabels = stats.attendanceTrend.map((d) => new Date(d._id).toLocaleDateString());
-  const attendanceData = stats.attendanceTrend.map((d) => d.present);
-  const genderLabels = stats.genderStats.map((g) => g._id || 'Unknown');
-  const genderData = stats.genderStats.map((g) => g.count);
-  const donationLabels = stats.donationsByMonth.map((d) => `${d._id.month}/${d._id.year}`);
-  const donationData = stats.donationsByMonth.map((d) => d.total);
+
+  if (loading) return <div className="text-slate-400 p-4">Loading Dashboard...</div>;
+  if (!stats || !memberStats) return <div className="text-red-400 p-4">Error loading data.</div>;
+
+  // Chart Data Preparation
+  const attendanceData = {
+    labels: stats.attendanceTrend.map(d => new Date(d._id).toLocaleDateString()),
+    datasets: [{
+      label: 'Attendance',
+      data: stats.attendanceTrend.map(d => d.present),
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56,189,248,0.1)',
+      fill: true,
+      tension: 0.4
+    }]
+  };
+
+  const donationData = {
+    labels: stats.donationsByMonth.map(d => `${d._id.month}/${d._id.year}`),
+    datasets: [{
+      label: 'Donations ($)',
+      data: stats.donationsByMonth.map(d => d.total),
+      backgroundColor: '#10b981',
+      borderRadius: 4
+    }]
+  };
+
+  const ministryData = {
+    labels: memberStats.byMinistry.map(m => m._id || 'Unassigned'),
+    datasets: [{
+      data: memberStats.byMinistry.map(m => m.count),
+      backgroundColor: ['#f472b6', '#818cf8', '#34d399', '#fbbf24', '#60a5fa'],
+      borderWidth: 0
+    }]
+  };
+
+  const ageData = {
+    labels: memberStats.ageGroups.map(a => a._id),
+    datasets: [{
+      label: 'Members',
+      data: memberStats.ageGroups.map(a => a.count),
+      backgroundColor: '#a78bfa',
+      borderRadius: 4
+    }]
+  };
+
   return (
-    <div className='space-y-4'>
-      <h1 className='text-xl font-semibold'>Dashboard</h1>
-      <div className='grid md:grid-cols-4 gap-4 text-xs'>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-slate-400'>Total Members</div>
-          <div className='text-2xl font-semibold text-sky-300'>{stats.totalMembers}</div>
+    <div className="space-y-6 text-xs text-slate-300">
+      <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
+
+      {/* Top Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <p className="text-slate-400">Total Members</p>
+          <p className="text-3xl font-bold text-sky-400 mt-1">{stats.totalMembers}</p>
         </div>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-slate-400'>Small Groups</div>
-          <div className='text-2xl font-semibold text-emerald-300'>{stats.totalGroups}</div>
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <p className="text-slate-400">Small Groups</p>
+          <p className="text-3xl font-bold text-emerald-400 mt-1">{stats.totalGroups}</p>
         </div>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-slate-400'>Total Donations</div>
-          <div className='text-2xl font-semibold text-amber-300'>${stats.totalDonations.toFixed(2)}</div>
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <p className="text-slate-400">Total Donations</p>
+          <p className="text-3xl font-bold text-amber-400 mt-1">${stats.totalDonations.toLocaleString()}</p>
         </div>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-slate-400'>Upcoming Events</div>
-          <div className='text-2xl font-semibold text-purple-300'>{stats.upcomingEvents.length}</div>
-        </div>
-      </div>
-      <div className='grid md:grid-cols-2 gap-4'>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-[11px] text-slate-400 mb-2'>Attendance Trend</div>
-          <Line
-            data={{
-              labels: attendanceLabels,
-              datasets: [
-                {
-                  label: 'Present',
-                  data: attendanceData,
-                  borderColor: '#38bdf8',
-                  backgroundColor: 'rgba(56,189,248,0.2)',
-                },
-              ],
-            }}
-            options={{ responsive: true, plugins: { legend: { display: false } } }}
-          />
-        </div>
-        <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-          <div className='text-[11px] text-slate-400 mb-2'>Gender Distribution</div>
-          <Doughnut
-            data={{
-              labels: genderLabels,
-              datasets: [
-                {
-                  data: genderData,
-                  backgroundColor: ['#38bdf8', '#f97316', '#a855f7'],
-                },
-              ],
-            }}
-          />
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <p className="text-slate-400">Upcoming Events</p>
+          <p className="text-3xl font-bold text-purple-400 mt-1">{stats.upcomingEvents.length}</p>
         </div>
       </div>
-      <div className='rounded-lg border border-slate-800 bg-slate-900 p-3'>
-        <div className='text-[11px] text-slate-400 mb-2'>Monthly Donations</div>
-        <Bar
-          data={{
-            labels: donationLabels,
-            datasets: [
-              {
-                label: 'Donations',
-                data: donationData,
-                backgroundColor: '#22c55e',
-              },
-            ],
-          }}
-          options={{ responsive: true, plugins: { legend: { display: false } } }}
-        />
+
+      {/* Main Charts Row */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <h3 className="font-semibold text-white mb-4">Attendance Trend</h3>
+          <div className="h-64">
+            <Line data={attendanceData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+          </div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <h3 className="font-semibold text-white mb-4">Ministry Distribution</h3>
+          <div className="h-64 flex justify-center">
+            <Pie data={ministryData} options={{ maintainAspectRatio: false }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Charts Row */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <h3 className="font-semibold text-white mb-4">Age Demographics</h3>
+          <div className="h-48">
+            <Bar data={ageData} options={{ maintainAspectRatio: false, indexAxis: 'y' }} />
+          </div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+          <h3 className="font-semibold text-white mb-4">Monthly Donations</h3>
+          <div className="h-48">
+            <Bar data={donationData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+          </div>
+        </div>
+        
+        {/* Upcoming Events List */}
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg flex flex-col">
+          <h3 className="font-semibold text-white mb-4">Upcoming Events</h3>
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {stats.upcomingEvents.length === 0 ? <p className="text-slate-500">No upcoming events.</p> : 
+              stats.upcomingEvents.map(ev => (
+                <div key={ev._id} className="bg-slate-800/50 p-2 rounded border-l-2 border-purple-500">
+                  <p className="text-white font-medium">{ev.title}</p>
+                  <p className="text-[10px] text-slate-400">
+                    {new Date(ev.date).toLocaleDateString()} @ {ev.time || 'TBD'}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
       </div>
     </div>
   );

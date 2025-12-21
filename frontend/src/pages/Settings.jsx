@@ -1,4 +1,3 @@
-// frontend/src/pages/Settings.jsx
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/axiosClient.js';
 
@@ -27,7 +26,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Admin Only Zone */}
       {user?.role === 'admin' && (
         <div className="bg-slate-900 border border-red-900/50 p-4 rounded max-w-md">
             <h2 className="text-lg font-semibold mb-2 text-red-400">Danger Zone</h2>
