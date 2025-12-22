@@ -3,7 +3,7 @@ const memberSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, index: true },
     dateOfBirth: { type: Date },
-    gender: { type: String, enum: ['male', 'female', 'other'], required: true },
+    gender: { type: String, enum: ['male', 'female'], required: true },
     phone: { type: String },
     address: { type: String },
     ministry: { type: String, index: true },

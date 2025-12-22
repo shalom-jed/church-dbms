@@ -160,6 +160,15 @@ const createGroup = asyncHandler(async (req, res) => {
   res.status(201).json(group);
 });
 
+const getGroup = asyncHandler(async (req, res) => {
+  const group = await SmallGroup.findById(req.params.id)
+    .populate('members', 'fullName phone profilePhotoUrl')
+    .populate('leader', 'fullName');
+    
+  if (!group) return res.status(404).json({ message: 'Group not found' });
+  res.json(group);
+});
+
 const getGroups = asyncHandler(async (req, res) => {
   const { search } = req.query;
   const filter = {};

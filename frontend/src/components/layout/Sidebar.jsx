@@ -8,10 +8,10 @@ export default function Sidebar() {
     <aside className='hidden md:flex md:flex-col w-60 bg-slate-900 border-r border-slate-800'>
       <div className='px-4 py-3 border-b border-slate-800 flex items-center gap-2'>
         <div className='h-8 w-8 rounded-lg bg-indigo-600/20 flex items-center justify-center text-indigo-400 text-xs font-bold'>
-          CMS
+          CDM
         </div>
         <div>
-          <div className='text-xs font-semibold'>Church CMS</div>
+          <div className='text-xs font-semibold'>Church Data Management</div>
           <div className='text-[10px] text-slate-400'>{user?.name} · {user?.role}</div>
         </div>
       </div>

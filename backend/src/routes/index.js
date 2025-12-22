@@ -87,6 +87,7 @@ router.post(
   validateRequest,
   ctrl.removeMemberFromGroup
 );
+
 // ===== Attendance =====
 router.post(
   '/attendance',

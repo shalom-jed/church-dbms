@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import Members from './pages/Members.jsx';
 import MemberDetail from './pages/MemberDetail.jsx';
 import SmallGroups from './pages/SmallGroups.jsx';
+import GroupDetail from './pages/GroupDetail.jsx';
 import Attendance from './pages/Attendance.jsx';
 import Donations from './pages/Donations.jsx';
 import Events from './pages/Events.jsx';
@@ -54,6 +55,14 @@ function AppLayout() {
                 </ProtectedRoute>
               }
             />
+
+              <Route path="/groups" 
+              element={
+                <SmallGroups />} />
+                  <Route path="/groups/:id"
+                element={<GroupDetail />} 
+                /> 
+
             <Route
               path='/attendance'
               element={

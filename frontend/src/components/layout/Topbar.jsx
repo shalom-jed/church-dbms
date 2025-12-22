@@ -9,9 +9,9 @@ export default function Topbar() {
     <header className="w-full px-4 py-2 bg-slate-900 border-b border-slate-800 text-xs text-slate-100">
       <div className="flex items-center justify-between">
         <div>
-          <div className="font-semibold">Church CMS</div>
+          <div className="font-semibold">Church Data Management System</div>
           <div className="text-[10px] text-slate-400">
-            Full MERN Church Management System
+            Assembly of God Church, Ruwanwella
           </div>
         </div>
         <div className="flex items-center gap-3">
