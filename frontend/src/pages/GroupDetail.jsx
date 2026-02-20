@@ -10,6 +10,7 @@ export default function GroupDetail() {
   const [assignId, setAssignId] = useState('');
   const [showEdit, setShowEdit] = useState(false);
   const [formData, setFormData] = useState({});
+  const [error, setError] = useState(null); // Added error state
 
   const loadData = async () => {
     try {
@@ -26,7 +27,11 @@ export default function GroupDetail() {
         meetingTime: gRes.data.meetingTime,
         notes: gRes.data.notes
       });
-    } catch (e) { console.error(e); }
+      setError(null); // Clear any previous errors
+    } catch (e) { 
+      console.error(e); 
+      setError(e.response?.data?.message || "Failed to load group details."); // Set the error
+    }
   };
 
   useEffect(() => { loadData(); }, [id]);
@@ -61,7 +66,9 @@ export default function GroupDetail() {
     }
   };
 
-  if (!group) return <div>Loading...</div>;
+  // Updated rendering checks to show the error if one occurs
+  if (error) return <div className="p-6 text-red-400 font-bold">Error: {error}</div>;
+  if (!group) return <div className="p-6 text-slate-400">Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 text-slate-300 text-xs">

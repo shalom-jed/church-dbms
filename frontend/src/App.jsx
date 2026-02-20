@@ -15,6 +15,7 @@ import Donations from './pages/Donations.jsx';
 import Events from './pages/Events.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
+
 function AppLayout() {
   return (
     <div className='min-h-screen flex bg-slate-950 text-slate-50'>
@@ -55,14 +56,14 @@ function AppLayout() {
                 </ProtectedRoute>
               }
             />
-
-              <Route path="/groups" 
+            <Route
+              path='/groups/:id'
               element={
-                <SmallGroups />} />
-                  <Route path="/groups/:id"
-                element={<GroupDetail />} 
-                /> 
-
+                <ProtectedRoute>
+                  <GroupDetail />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path='/attendance'
               element={
@@ -109,6 +110,7 @@ function AppLayout() {
     </div>
   );
 }
+
 export default function App() {
   const { user } = useAuth();
   return (

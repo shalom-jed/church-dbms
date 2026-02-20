@@ -5,6 +5,7 @@ const { authenticate } = require('../middleware/auth');
 const { authorizeRoles } = require('../middleware/roles');
 const ctrl = require('../controllers');
 const router = express.Router();
+
 // ===== Auth =====
 router.post(
   '/auth/login',
@@ -14,6 +15,7 @@ router.post(
 );
 router.get('/auth/me', authenticate, ctrl.getMe);
 router.post('/auth/seed-admin', ctrl.seedAdmin);
+
 // ===== Members =====
 router.post(
   '/members',
@@ -49,6 +51,7 @@ router.get(
   authorizeRoles('admin', 'pastor'),
   ctrl.exportMembers
 );
+
 // ===== Small Groups =====
 router.post(
   '/groups',
@@ -59,6 +62,10 @@ router.post(
   ctrl.createGroup
 );
 router.get('/groups', authenticate, ctrl.getGroups);
+
+// 🛠️ THE FIX: This gets a single group by ID
+router.get('/groups/:id', authenticate, ctrl.getGroup);
+
 router.put(
   '/groups/:id',
   authenticate,
@@ -99,6 +106,7 @@ router.post(
 );
 router.get('/attendance', authenticate, ctrl.getAttendanceByDate);
 router.get('/attendance/member/:memberId', authenticate, ctrl.getMemberAttendance);
+
 // ===== Events =====
 router.post(
   '/events',
@@ -121,6 +129,7 @@ router.delete(
   authorizeRoles('admin', 'pastor'),
   ctrl.deleteEvent
 );
+
 // ===== Donations =====
 router.post(
   '/donations',
@@ -149,6 +158,7 @@ router.get(
   authorizeRoles('admin', 'pastor'),
   ctrl.exportDonations
 );
+
 // ===== Reports =====
 router.get('/reports/dashboard', authenticate, ctrl.dashboardStats);
 router.get('/reports/members', authenticate, ctrl.memberReports);
@@ -156,4 +166,5 @@ router.get('/reports/attendance', authenticate, ctrl.attendanceReports);
 router.get('/reports/donations', authenticate, ctrl.donationReports);
 router.get('/reports/groups', authenticate, ctrl.groupReports);
 router.get('/reports/events', authenticate, ctrl.eventReports);
+
 module.exports = router;

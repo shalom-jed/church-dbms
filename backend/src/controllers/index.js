@@ -37,14 +37,21 @@ const getMe = asyncHandler(async (req, res) => {
 });
 
 const seedAdmin = asyncHandler(async (req, res) => {
+  // REQUIRE A SECRET FOR SEEDING TO PREVENT UNAUTHORIZED ACCOUNT CREATION
+  if (req.body.secret !== process.env.SEED_SECRET) {
+    return res.status(403).json({ message: 'Forbidden: Invalid Seed Secret' });
+  }
+
   const existing = await User.findOne({ role: 'admin' });
   if (existing) return res.json({ message: 'Admin already exists' });
+  
   const admin = await User.create({
     name: 'Admin',
     email: 'admin@church.local',
     password: 'Admin123!@#',
     role: 'admin',
   });
+  
   res.json({ message: 'Admin created', admin: { id: admin._id, email: admin.email } });
 });
 
@@ -571,6 +578,7 @@ module.exports = {
   // groups
   createGroup,
   getGroups,
+  getGroup,      // <--- THIS IS THE FIX (EXPORTED HERE)
   updateGroup,
   deleteGroup,
   assignMemberToGroup,

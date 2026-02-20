@@ -23,7 +23,7 @@ export default function Donations() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [filters]); // Reload when filters change
+  useEffect(() => { load(); }, [filters]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,12 +54,15 @@ export default function Donations() {
     try { await api.delete(`/donations/${id}`); load(); } catch (e) { alert('Delete failed'); }
   };
 
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const authData = JSON.parse(localStorage.getItem('cms_auth') || '{}');
+
   return (
     <div className="space-y-4 text-xs">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Donations</h1>
         <div className="flex gap-2">
-            <a href="http://localhost:5000/api/donations/export" target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-white flex items-center">
+            <a href={`${baseUrl}/donations/export?token=${authData.token}`} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-white flex items-center">
                 Export CSV
             </a>
             <button onClick={() => { setEditingId(null); setShowModal(true); }} className="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-medium">

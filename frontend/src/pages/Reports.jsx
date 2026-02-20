@@ -38,6 +38,9 @@ export default function Reports() {
     datasets: [{ label: 'Donations ($)', data: data.donations?.totalByPeriod.map(d => d.total), borderColor: '#22c55e', tension: 0.3 }]
   };
 
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const authData = JSON.parse(localStorage.getItem('cms_auth') || '{}');
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Analytics & Reports</h1>
@@ -59,11 +62,11 @@ export default function Reports() {
       </div>
 
       <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 flex gap-4">
-         <a href="http://localhost:5000/api/members/export" target="_blank" rel="noreferrer" 
+         <a href={`${baseUrl}/members/export?token=${authData.token}`} target="_blank" rel="noreferrer" 
             className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded text-white text-sm">
             📥 Download Member CSV
          </a>
-         <a href="http://localhost:5000/api/donations/export" target="_blank" rel="noreferrer" 
+         <a href={`${baseUrl}/donations/export?token=${authData.token}`} target="_blank" rel="noreferrer" 
             className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded text-white text-sm">
             📥 Download Donation CSV
          </a>

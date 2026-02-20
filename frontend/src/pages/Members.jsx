@@ -6,52 +6,41 @@ import Papa from 'papaparse';
 export default function Members() {
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
-  const [groups, setGroups] = useState([]); // For filter dropdown
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
-  // Search & Filter State
   const [filters, setFilters] = useState({
-    search: '',
-    gender: '',
-    ministry: '',
-    smallGroup: ''
+    search: '', gender: '', ministry: '', smallGroup: ''
   });
 
-  // Form State
   const [formData, setFormData] = useState({
     fullName: '', gender: 'male', phone: '', address: '', ministry: '', dateOfBirth: '', profilePhotoBase64: ''
   });
 
-  // Load Members with Filters
   const loadData = async () => {
     setLoading(true);
     try {
-      // Clean filters (remove empty strings)
       const params = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''));
       params.limit = 100;
-
       const [memRes, groupRes] = await Promise.all([
         api.get('/members', { params }),
         api.get('/groups')
       ]);
-      
       setMembers(memRes.data.items || []);
       setGroups(groupRes.data || []);
     } catch (e) { console.error(e); } 
     finally { setLoading(false); }
   };
 
-  useEffect(() => { loadData(); }, [filters]); // Reload when filters change
+  useEffect(() => { loadData(); }, [filters]);
 
-  // Handle Input Changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle Image Upload (Convert to Base64)
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -61,7 +50,6 @@ export default function Members() {
     }
   };
 
-  // Open Modal for Edit
   const handleEdit = (e, member) => {
     e.stopPropagation();
     setEditingId(member._id);
@@ -72,19 +60,17 @@ export default function Members() {
       address: member.address || '',
       ministry: member.ministry || '',
       dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split('T')[0] : '',
-      profilePhotoBase64: '' // Keep empty to avoid re-uploading if unchanged
+      profilePhotoBase64: '' 
     });
     setShowModal(true);
   };
 
-  // Delete Member
   const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this member?")) return;
     try { await api.delete(`/members/${id}`); loadData(); } catch (e) { alert('Delete failed - check your permissions'); }
   };
 
-  // Submit Form (Create or Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -103,7 +89,6 @@ export default function Members() {
     }
   };
 
-  // CSV Import
   const handleCSVImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -119,12 +104,15 @@ export default function Members() {
     });
   };
 
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const authData = JSON.parse(localStorage.getItem('cms_auth') || '{}');
+
   return (
     <div className="space-y-4 text-xs text-slate-300">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-xl font-bold text-white">Members</h1>
         <div className="flex gap-2">
-           <a href={`${import.meta.env.VITE_API_URL}/members/export?token=${localStorage.getItem('token')}`} target="_blank" rel="noreferrer" 
+           <a href={`${baseUrl}/members/export?token=${authData.token}`} target="_blank" rel="noreferrer" 
               className="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-white font-medium">Export CSV</a>
            <label className="cursor-pointer bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-white font-medium">
               Import CSV
@@ -134,7 +122,6 @@ export default function Members() {
         </div>
       </div>
 
-      {/* Advanced Filters */}
       <div className="bg-slate-900 p-3 rounded border border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-3">
         <input 
           placeholder="Search Name or Phone..." 
@@ -159,7 +146,6 @@ export default function Members() {
         />
       </div>
 
-      {/* Table */}
       {loading ? <div className="text-slate-400">Loading...</div> : (
         <div className="bg-slate-900 rounded border border-slate-800 overflow-hidden">
           <table className="w-full text-left">
@@ -197,7 +183,6 @@ export default function Members() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
           <div className="bg-slate-900 border border-slate-700 p-6 rounded-lg w-full max-w-lg relative max-h-[90vh] overflow-y-auto">

@@ -5,10 +5,15 @@ export default function Settings() {
   const { user } = useAuth();
 
   const handleSeed = async () => {
+    const secret = prompt('Please enter the Seed Secret configured in the backend:');
+    if (!secret) return;
+
     try {
-      const res = await api.post('/auth/seed-admin');
+      const res = await api.post('/auth/seed-admin', { secret });
       alert(res.data.message);
-    } catch (e) { alert('Error seeding admin'); }
+    } catch (e) { 
+      alert(e.response?.data?.message || 'Error seeding admin'); 
+    }
   };
 
   return (
