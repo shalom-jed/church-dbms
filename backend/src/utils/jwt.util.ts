@@ -1,11 +1,144 @@
-import jwt from 'jsonwebtoken';
-
-export const generateToken = (payload: any): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
-};
-
-export const verifyToken = (token: string): any => {
-  return jwt.verify(token, process.env.JWT_SECRET!);
-};
+[{
+	"resource": "/e:/church-dbms/backend/prisma/seed.ts",
+	"owner": "typescript",
+	"code": "2580",
+	"severity": 8,
+	"message": "Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.",
+	"source": "ts",
+	"startLineNumber": 64,
+	"startColumn": 5,
+	"endLineNumber": 64,
+	"endColumn": 12,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/backend/src/utils/jwt.util.ts",
+	"owner": "typescript",
+	"code": "2769",
+	"severity": 8,
+	"message": "No overload matches this call.\n  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: \"none\"; }) | undefined): string', gave the following error.\n    Argument of type 'string' is not assignable to parameter of type 'null'.\n  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, options?: SignOptions | undefined): string', gave the following error.\n    Type 'string' is not assignable to type 'number | StringValue | undefined'.\n  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, callback: SignCallback): void', gave the following error.\n    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.",
+	"source": "ts",
+	"startLineNumber": 4,
+	"startColumn": 14,
+	"endLineNumber": 4,
+	"endColumn": 18,
+	"modelVersionId": 2,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @tailwind",
+	"source": "css",
+	"startLineNumber": 1,
+	"startColumn": 1,
+	"endLineNumber": 1,
+	"endColumn": 10,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @tailwind",
+	"source": "css",
+	"startLineNumber": 2,
+	"startColumn": 1,
+	"endLineNumber": 2,
+	"endColumn": 10,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @tailwind",
+	"source": "css",
+	"startLineNumber": 3,
+	"startColumn": 1,
+	"endLineNumber": 3,
+	"endColumn": 10,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 7,
+	"startColumn": 5,
+	"endLineNumber": 7,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 14,
+	"startColumn": 5,
+	"endLineNumber": 14,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 18,
+	"startColumn": 5,
+	"endLineNumber": 18,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 22,
+	"startColumn": 5,
+	"endLineNumber": 22,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 26,
+	"startColumn": 5,
+	"endLineNumber": 26,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/church-dbms/frontend/src/index.css",
+	"owner": "_generated_diagnostic_collection_name_#3",
+	"code": "unknownAtRules",
+	"severity": 4,
+	"message": "Unknown at rule @apply",
+	"source": "css",
+	"startLineNumber": 30,
+	"startColumn": 5,
+	"endLineNumber": 30,
+	"endColumn": 11,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+}]
