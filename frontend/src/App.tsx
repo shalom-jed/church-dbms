@@ -11,6 +11,7 @@ import Attendance from './pages/Attendance';
 import Departments from './pages/Departments';
 import Events from './pages/Events';
 import Finance from './pages/Finance';
+import Reports from './pages/Reports';
 
 function App() {
   return (
@@ -91,6 +92,17 @@ function App() {
     <ProtectedRoute>
       <MainLayout>
         <Finance />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/reports"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Reports />
       </MainLayout>
     </ProtectedRoute>
   }
