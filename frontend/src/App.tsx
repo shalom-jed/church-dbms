@@ -6,6 +6,8 @@ import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
+import SmallGroups from './pages/SmallGroups';
+import Attendance from './pages/Attendance';
 
 function App() {
   return (
@@ -36,6 +38,27 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+  path="/small-groups"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <SmallGroups />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/attendance"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Attendance />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
           
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
