@@ -73,30 +73,48 @@ export class MemberService {
   }
 
   static async create(data: any, createdById: string) {
-    const member = await prisma.member.create({
-      data: {
-        ...data,
-        createdById,
-      },
-      include: {
-        family: true,
-      },
-    });
+  // Convert date string to DateTime if present
+  const processedData = {
+    ...data,
+    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+    anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : null,
+    baptismDate: data.baptismDate ? new Date(data.baptismDate) : null,
+    joinDate: data.joinDate ? new Date(data.joinDate) : null,
+  };
 
-    return member;
-  }
+  const member = await prisma.member.create({
+    data: {
+      ...processedData,
+      createdById,
+    },
+    include: {
+      family: true,
+    },
+  });
+
+  return member;
+}
 
   static async update(id: string, data: any) {
-    const member = await prisma.member.update({
-      where: { id },
-      data,
-      include: {
-        family: true,
-      },
-    });
+  // Convert date strings to DateTime if present
+  const processedData = {
+    ...data,
+    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+    anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : undefined,
+    baptismDate: data.baptismDate ? new Date(data.baptismDate) : undefined,
+    joinDate: data.joinDate ? new Date(data.joinDate) : undefined,
+  };
 
-    return member;
-  }
+  const member = await prisma.member.update({
+    where: { id },
+    data: processedData,
+    include: {
+      family: true,
+    },
+  });
+
+  return member;
+}
 
   static async delete(id: string) {
     // Check if member has a user account

@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Members from './pages/Members';
 
 function App() {
   return (
@@ -24,8 +25,20 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/members"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Members />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
           
           <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
