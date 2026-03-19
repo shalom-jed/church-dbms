@@ -2,16 +2,13 @@
 
 A comprehensive, full-stack database management system designed to streamline administration, community engagement, and financial tracking for modern congregations. 
 
-## 🚀 Features
+## 🚀 Key Features
 
-* **Member Directory:** Track personal profiles, contact information, and spiritual milestones (baptism, join dates).
-* **Leadership & Ministry Tracking:** Assign leadership roles and tag members to specific ministries (Youth, Worship, Men, Women, etc.).
-* **Groups & Departments:** Manage small group rosters and department memberships.
-* **Smart Attendance Tracking:** * Quick-mark interfaces for Sunday services, events, and small groups.
-  * **Absentee Reports:** Automatically identify active members who have missed both Sunday services and small groups within a given date range.
-* **Financial Dashboard:** * Record income and expenses with categorized tagging.
-  * Generate visual summaries (Total Income, Expenses, Balance).
-  * One-click exports to PDF and Excel for seamless accounting.
+* **Member Directory:** Track personal profiles, spiritual milestones (baptism, join dates), and leadership roles across different ministries.
+* **Small Groups & Departments:** Manage group rosters, assign leaders, and monitor weekly engagement.
+* **Smart Attendance Tracking:** Comprehensive logging for Sunday services and small groups, featuring quick-mark interfaces and automated absentee detection.
+* **Financial Dashboard:** Record income and expenses, monitor balances, and view visual analytics.
+* **Universal Data Exports:** Built-in reporting engine allowing administrators to instantly export attendance records, absentee lists, and financial statements directly to **professional PDFs and Excel spreadsheets** with a single click.
 
 ## 💻 Tech Stack
 
