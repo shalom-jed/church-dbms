@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as financeService from '../services/finance.service';
 import toast from 'react-hot-toast';
+import { TrendingUp, TrendingDown, Wallet, Plus, DollarSign, CreditCard } from 'lucide-react';
 
 export default function Finance() {
   const [summary, setSummary] = useState<any>(null);
@@ -77,108 +78,107 @@ export default function Finance() {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Finance</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-secondary-900">Finance</h1>
+          <p className="text-secondary-500 mt-1">Track income and expenses</p>
+        </div>
+        <button 
+          onClick={() => setShowForm(true)} 
+          className="btn-primary flex items-center space-x-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Add Record</span>
+        </button>
+      </div>
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="card">
-            <h3 className="text-sm text-gray-600 mb-2">Total Income</h3>
-            <p className="text-3xl font-bold text-green-600">
-              LKR {summary.totalIncome.toLocaleString()}
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="stat-card from-green-500 to-green-600">
+            <div className="flex justify-between items-start mb-4">
+              <TrendingUp className="w-8 h-8" />
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <p className="text-sm opacity-90 mb-1">Total Income</p>
+            <p className="text-3xl font-bold">LKR {summary.totalIncome.toLocaleString()}</p>
           </div>
 
-          <div className="card">
-            <h3 className="text-sm text-gray-600 mb-2">Total Expenses</h3>
-            <p className="text-3xl font-bold text-red-600">
-              LKR {summary.totalExpenses.toLocaleString()}
-            </p>
+          <div className="stat-card from-red-500 to-red-600">
+            <div className="flex justify-between items-start mb-4">
+              <TrendingDown className="w-8 h-8" />
+              <CreditCard className="w-6 h-6" />
+            </div>
+            <p className="text-sm opacity-90 mb-1">Total Expenses</p>
+            <p className="text-3xl font-bold">LKR {summary.totalExpenses.toLocaleString()}</p>
           </div>
 
-          <div className="card">
-            <h3 className="text-sm text-gray-600 mb-2">Balance</h3>
-            <p
-              className={`text-3xl font-bold ${
-                summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'
-              }`}
-            >
-              LKR {summary.balance.toLocaleString()}
-            </p>
+          <div className={`stat-card ${summary.balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'}`}>
+            <div className="flex justify-between items-start mb-4">
+              <Wallet className="w-8 h-8" />
+              {summary.balance >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+            </div>
+            <p className="text-sm opacity-90 mb-1">Balance</p>
+            <p className="text-3xl font-bold">LKR {summary.balance.toLocaleString()}</p>
           </div>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="card mb-6">
-        <div className="flex space-x-4 border-b pb-4 mb-4">
+      <div className="card">
+        <div className="flex space-x-4 border-b pb-4 mb-6">
           <button
             onClick={() => setActiveTab('income')}
-            className={`pb-2 border-b-2 transition-colors ${
+            className={`pb-2 px-4 border-b-2 transition-all font-semibold ${
               activeTab === 'income'
-                ? 'border-primary-600 text-primary-600 font-semibold'
-                : 'border-transparent text-gray-500'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            Income
+            Income Records
           </button>
           <button
             onClick={() => setActiveTab('expense')}
-            className={`pb-2 border-b-2 transition-colors ${
+            className={`pb-2 px-4 border-b-2 transition-all font-semibold ${
               activeTab === 'expense'
-                ? 'border-primary-600 text-primary-600 font-semibold'
-                : 'border-transparent text-gray-500'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            Expenses
+            Expense Records
           </button>
         </div>
 
-        <button onClick={() => setShowForm(true)} className="btn-primary">
-          + Add {activeTab === 'income' ? 'Income' : 'Expense'}
-        </button>
-      </div>
-
-      {/* Records */}
-      <div className="card">
+        {/* Records Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Payment Method
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Description
-                </th>
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Date</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Category</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Amount</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Method</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Description</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {(activeTab === 'income' ? incomeRecords : expenseRecords).map((record) => (
-                <tr key={record.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td className="py-3 px-4 text-sm text-secondary-900">
                     {new Date(record.date).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.category.categoryName}
+                  <td className="py-3 px-4">
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-primary-100 text-primary-700">
+                      {record.category.categoryName}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                  <td className="py-3 px-4 text-sm font-bold text-secondary-900">
                     LKR {record.amount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {record.paymentMethod}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="py-3 px-4 text-sm text-secondary-600">{record.paymentMethod}</td>
+                  <td className="py-3 px-4 text-sm text-secondary-600">
                     {record.description || record.notes || '-'}
                   </td>
                 </tr>
@@ -187,18 +187,21 @@ export default function Finance() {
           </table>
 
           {(activeTab === 'income' ? incomeRecords : expenseRecords).length === 0 && (
-            <div className="text-center py-12 text-gray-500">No records found</div>
+            <div className="text-center py-12">
+              <Wallet className="w-16 h-16 mx-auto text-secondary-300 mb-4" />
+              <p className="text-secondary-500">No records found</p>
+            </div>
           )}
         </div>
       </div>
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-hard animate-scale-up">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-2xl font-bold text-secondary-900">
                   Add {activeTab === 'income' ? 'Income' : 'Expense'}
                 </h2>
                 <button
@@ -206,9 +209,9 @@ export default function Finance() {
                     setShowForm(false);
                     resetForm();
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-secondary-400 hover:text-secondary-600 text-2xl"
                 >
-                  ✕
+                  ×
                 </button>
               </div>
 
