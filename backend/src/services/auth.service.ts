@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { generateToken } from '../utils/jwt.util';
+import * as jwtUtil from '../utils/jwt.util';
 import { AppError } from '../middleware/error.middleware';
 
 const prisma = new PrismaClient();
@@ -33,7 +33,7 @@ export class AuthService {
     });
 
     // Generate token
-    const token = generateToken({
+    const token = jwtUtil.generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
