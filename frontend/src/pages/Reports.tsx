@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { reportService } from '../services/report.service';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
+import { exportAttendanceToPDF, exportAttendanceToExcel } from '../utils/exportUtils';
+import { Download, FileText, Table } from 'lucide-react';
 
 export default function Reports() {
   const [membershipReport, setMembershipReport] = useState<any>(null);
@@ -214,23 +216,26 @@ export default function Reports() {
       </div>
 
       {/* Export Buttons */}
-      <div className="card mt-6">
-        <h3 className="text-lg font-semibold mb-4">Export Reports</h3>
-        <div className="flex space-x-4">
-          <button 
-            className="btn-primary"
-            onClick={() => toast.info('PDF export coming soon!')}
-          >
-            📄 Export to PDF
-          </button>
-          <button 
-            className="btn-secondary"
-            onClick={() => toast.info('Excel export coming soon!')}
-          >
-            📊 Export to Excel
-          </button>
-        </div>
-      </div>
+      {/* Export Buttons */}
+<div className="card mt-6">
+  <h3 className="text-lg font-semibold mb-4">Export Reports</h3>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <button 
+      className="btn-primary flex items-center justify-center space-x-2"
+      onClick={() => exportAttendanceToPDF(attendanceReport?.services || [])}
+    >
+      <FileText className="w-5 h-5" />
+      <span>Export Attendance to PDF</span>
+    </button>
+    <button 
+      className="btn-secondary flex items-center justify-center space-x-2"
+      onClick={() => exportAttendanceToExcel(attendanceReport?.services || [])}
+    >
+      <Table className="w-5 h-5" />
+      <span>Export Attendance to Excel</span>
+    </button>
+  </div>
+</div>
     </div>
   );
 }

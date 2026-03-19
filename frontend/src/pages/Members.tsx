@@ -4,6 +4,8 @@ import type { Member } from '../services/member.service';
 import toast from 'react-hot-toast';
 import MemberForm from '../components/MemberForm';
 import { Search, Plus, Edit, Trash2, User, Phone, Mail } from 'lucide-react';
+import { exportMembersToPDF, exportMembersToExcel } from '../utils/exportUtils';
+import { Download, FileText, Table } from 'lucide-react';
 
 export default function Members() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -68,16 +70,41 @@ export default function Members() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-secondary-900">Members</h1>
-          <p className="text-secondary-500 mt-1">{members.length} total members</p>
-        </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center space-x-2">
-          <Plus className="w-5 h-5" />
-          <span>Add Member</span>
+      {/* Header */}
+<div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-3xl font-bold text-secondary-900">Members</h1>
+    <p className="text-secondary-500 mt-1">{members.length} total members</p>
+  </div>
+  <div className="flex items-center space-x-3">
+    <div className="relative group">
+      <button className="btn-secondary flex items-center space-x-2">
+        <Download className="w-4 h-4" />
+        <span>Export</span>
+      </button>
+      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-hard border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+        <button
+          onClick={() => exportMembersToPDF(filteredMembers)}
+          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
+        >
+          <FileText className="w-4 h-4 text-red-500" />
+          <span>Export to PDF</span>
+        </button>
+        <button
+          onClick={() => exportMembersToExcel(filteredMembers)}
+          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
+        >
+          <Table className="w-4 h-4 text-green-500" />
+          <span>Export to Excel</span>
         </button>
       </div>
+    </div>
+    <button onClick={() => setShowForm(true)} className="btn-primary flex items-center space-x-2">
+      <Plus className="w-5 h-5" />
+      <span>Add Member</span>
+    </button>
+  </div>
+</div>
 
       {/* Search */}
       <div className="card">
