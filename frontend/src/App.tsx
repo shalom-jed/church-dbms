@@ -6,7 +6,9 @@ import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
+import MemberDetail from './pages/MemberDetail';
 import SmallGroups from './pages/SmallGroups';
+import SmallGroupDetail from './pages/SmallGroupDetail';
 import Attendance from './pages/Attendance';
 import Departments from './pages/Departments';
 import Events from './pages/Events';
@@ -42,71 +44,94 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
-  path="/small-groups"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <SmallGroups />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+            path="/members/:id"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MemberDetail />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/attendance"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <Attendance />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/small-groups"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <SmallGroups />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/departments"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <Departments />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/small-groups/:id"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <SmallGroupDetail />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/events"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <Events />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/attendance"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Attendance />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/finance"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <Finance />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/departments"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Departments />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/reports"
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <Reports />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Events />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/finance"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Finance />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Reports />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
           
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />

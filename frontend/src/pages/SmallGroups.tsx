@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { smallGroupService } from '../services/smallGroup.service';
 import type { SmallGroup } from '../services/smallGroup.service';
 import toast from 'react-hot-toast';
 import SmallGroupForm from '../components/SmallGroupForm';
-import { Users, MapPin, Calendar, Clock, Plus, Edit, Trash2, TrendingUp } from 'lucide-react';
+import { Users, MapPin, Calendar, Clock, Plus, Edit, Trash2, TrendingUp, Eye } from 'lucide-react';
 
 export default function SmallGroups() {
+  const navigate = useNavigate();
   const [groups, setGroups] = useState<SmallGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,7 +41,8 @@ export default function SmallGroups() {
     }
   };
 
-  const handleEdit = (group: SmallGroup) => {
+  const handleEdit = (group: SmallGroup, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingGroup(group);
     setShowForm(true);
   };
@@ -64,7 +67,7 @@ export default function SmallGroups() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-secondary-900">Small Groups</h1>
-          <p className="text-secondary-500 mt-1">{groups.length} active groups</p>
+          <p className="text-secondary-500 mt-1">{groups.length} groups</p>
         </div>
         <button onClick={() => setShowForm(true)} className="btn-primary flex items-center space-x-2">
           <Plus className="w-5 h-5" />
@@ -118,7 +121,11 @@ export default function SmallGroups() {
       {/* Groups Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {groups.map((group) => (
-          <div key={group.id} className="card hover-lift border-l-4 border-primary-500">
+          <div 
+            key={group.id} 
+            className="card hover-lift border-l-4 border-primary-500 cursor-pointer"
+            onClick={() => navigate(`/small-groups/${group.id}`)}
+          >
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold text-secondary-900 mb-2">{group.groupName}</h3>
@@ -177,15 +184,27 @@ export default function SmallGroups() {
 
             <div className="flex space-x-2">
               <button
-                onClick={() => handleEdit(group)}
-                className="flex-1 btn-secondary text-sm flex items-center justify-center space-x-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/small-groups/${group.id}`);
+                }}
+                className="flex-1 btn-primary text-sm flex items-center justify-center space-x-2"
               >
-                <Edit className="w-4 h-4" />
-                <span>Edit</span>
+                <Eye className="w-4 h-4" />
+                <span>View Details</span>
               </button>
               <button
-                onClick={() => handleDelete(group.id)}
-                className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                onClick={(e) => handleEdit(group, e)}
+                className="px-3 py-2 btn-secondary text-sm"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(group.id);
+                }}
+                className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

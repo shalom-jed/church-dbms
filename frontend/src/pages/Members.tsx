@@ -6,6 +6,7 @@ import MemberForm from '../components/MemberForm';
 import { Search, Plus, Edit, Trash2, User, Phone, Mail } from 'lucide-react';
 import { exportMembersToPDF, exportMembersToExcel } from '../utils/exportUtils';
 import { Download, FileText, Table } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Members() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -13,6 +14,7 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadMembers();
@@ -70,7 +72,6 @@ export default function Members() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      {/* Header */}
 <div className="flex justify-between items-center">
   <div>
     <h1 className="text-3xl font-bold text-secondary-900">Members</h1>
@@ -124,57 +125,62 @@ export default function Members() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMembers.map((member) => (
           <div key={member.id} className="card group hover-lift">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
-                  {member.firstName[0]}{member.lastName[0]}
-                </div>
-                <div>
-                  <h3 className="font-bold text-secondary-900">
-                    {member.firstName} {member.lastName}
-                  </h3>
-                  <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-700 mt-1">
-                    {member.membershipStatus}
-                  </span>
-                </div>
-              </div>
-            </div>
+  <div 
+    className="cursor-pointer"
+    onClick={() => navigate(`/members/${member.id}`)}
+  >
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+          {member.firstName[0]}{member.lastName[0]}
+        </div>
+        <div>
+          <h3 className="font-bold text-secondary-900">
+            {member.firstName} {member.lastName}
+          </h3>
+          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-700 mt-1">
+            {member.membershipStatus}
+          </span>
+        </div>
+      </div>
+    </div>
 
-            <div className="space-y-2 mb-4">
-              {member.email && (
-                <div className="flex items-center text-sm text-secondary-600">
-                  <Mail className="w-4 h-4 mr-2 text-secondary-400" />
-                  <span className="truncate">{member.email}</span>
-                </div>
-              )}
-              {member.phonePrimary && (
-                <div className="flex items-center text-sm text-secondary-600">
-                  <Phone className="w-4 h-4 mr-2 text-secondary-400" />
-                  <span>{member.phonePrimary}</span>
-                </div>
-              )}
-              <div className="flex items-center text-sm text-secondary-600">
-                <User className="w-4 h-4 mr-2 text-secondary-400" />
-                <span>{member.gender}</span>
-              </div>
-            </div>
+    <div className="space-y-2 mb-4">
+      {member.email && (
+        <div className="flex items-center text-sm text-secondary-600">
+          <Mail className="w-4 h-4 mr-2 text-secondary-400" />
+          <span className="truncate">{member.email}</span>
+        </div>
+      )}
+      {member.phonePrimary && (
+        <div className="flex items-center text-sm text-secondary-600">
+          <Phone className="w-4 h-4 mr-2 text-secondary-400" />
+          <span>{member.phonePrimary}</span>
+        </div>
+      )}
+      <div className="flex items-center text-sm text-secondary-600">
+        <User className="w-4 h-4 mr-2 text-secondary-400" />
+        <span>{member.gender}</span>
+      </div>
+    </div>
+  </div>
 
-            <div className="flex space-x-2 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => handleEdit(member)}
-                className="flex-1 btn-secondary text-sm flex items-center justify-center space-x-2"
-              >
-                <Edit className="w-4 h-4" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => handleDelete(member.id)}
-                className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+  <div className="flex space-x-2 pt-4 border-t border-gray-100">
+    <button
+      onClick={(e) => { e.stopPropagation(); handleEdit(member); }}
+      className="flex-1 btn-secondary text-sm flex items-center justify-center space-x-2"
+    >
+      <Edit className="w-4 h-4" />
+      <span>Edit</span>
+    </button>
+    <button
+      onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }}
+      className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
+  </div>
+</div>
         ))}
       </div>
 

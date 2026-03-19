@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { memberService } from '../services/member.service';
 import type { Member } from '../services/member.service';
 import toast from 'react-hot-toast';
+import { X } from 'lucide-react';
 
 interface MemberFormProps {
   member: Member | null;
@@ -14,28 +15,38 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
     lastName: '',
     email: '',
     phonePrimary: '',
+    phoneAlternate: '',
     gender: 'MALE',
     dateOfBirth: '',
     address: '',
     maritalStatus: 'SINGLE',
     membershipStatus: 'VISITOR',
     baptismStatus: 'NOT_BAPTIZED',
+    baptismDate: '',
+    joinDate: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (member) {
       setFormData({
-        firstName: member.firstName,
-        lastName: member.lastName,
+        firstName: member.firstName || '',
+        lastName: member.lastName || '',
         email: member.email || '',
         phonePrimary: member.phonePrimary || '',
-        gender: member.gender,
-        dateOfBirth: member.dateOfBirth || '',
+        phoneAlternate: (member as any).phoneAlternate || '',
+        gender: member.gender || 'MALE',
+        dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split('T')[0] : '',
         address: member.address || '',
         maritalStatus: member.maritalStatus || 'SINGLE',
-        membershipStatus: member.membershipStatus,
+        membershipStatus: member.membershipStatus || 'VISITOR',
         baptismStatus: member.baptismStatus || 'NOT_BAPTIZED',
+        baptismDate: (member as any).baptismDate ? (member as any).baptismDate.split('T')[0] : '',
+        joinDate: (member as any).joinDate ? (member as any).joinDate.split('T')[0] : '',
+        emergencyContactName: (member as any).emergencyContactName || '',
+        emergencyContactPhone: (member as any).emergencyContactPhone || '',
       });
     }
   }, [member]);
@@ -45,11 +56,16 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
     setLoading(true);
 
     try {
+      // Clean up empty strings to null
+      const cleanedData = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [key, value === '' ? null : value])
+      );
+
       if (member) {
-        await memberService.update(member.id, formData);
+        await memberService.update(member.id, cleanedData);
         toast.success('Member updated successfully');
       } else {
-        await memberService.create(formData);
+        await memberService.create(cleanedData);
         toast.success('Member created successfully');
       }
       onClose();
@@ -68,20 +84,26 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-hard animate-scale-up">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-secondary-900">
               {member ? 'Edit Member' : 'Add New Member'}
             </h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              ✕
+            <button onClick={onClose} className="text-secondary-400 hover:text-secondary-600">
+              <X className="w-6 h-6" />
             </button>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[70vh]">
+          {/* Personal Info Section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-secondary-900 mb-4 pb-2 border-b border-gray-200">
+              Personal Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="label">First Name *</label>
                 <input
@@ -105,33 +127,7 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                   required
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="label">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="input"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label className="label">Phone</label>
-                <input
-                  type="tel"
-                  name="phonePrimary"
-                  className="input"
-                  value={formData.phonePrimary}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Gender *</label>
                 <select
@@ -156,20 +152,7 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                   onChange={handleChange}
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="label">Address</label>
-              <textarea
-                name="address"
-                className="input"
-                rows={3}
-                value={formData.address}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Marital Status</label>
                 <select
@@ -185,6 +168,66 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                 </select>
               </div>
 
+              <div className="md:col-span-2">
+                <label className="label">Address</label>
+                <textarea
+                  name="address"
+                  className="input"
+                  rows={2}
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Info Section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-secondary-900 mb-4 pb-2 border-b border-gray-200">
+              Contact Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="input"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="label">Primary Phone</label>
+                <input
+                  type="tel"
+                  name="phonePrimary"
+                  className="input"
+                  value={formData.phonePrimary}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="label">Alternate Phone</label>
+                <input
+                  type="tel"
+                  name="phoneAlternate"
+                  className="input"
+                  value={formData.phoneAlternate}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Church Info Section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-secondary-900 mb-4 pb-2 border-b border-gray-200">
+              Church Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="label">Membership Status</label>
                 <select
@@ -200,40 +243,93 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                   <option value="INACTIVE">Inactive</option>
                 </select>
               </div>
-            </div>
 
-            <div>
-              <label className="label">Baptism Status</label>
-              <select
-                name="baptismStatus"
-                className="input"
-                value={formData.baptismStatus}
-                onChange={handleChange}
-              >
-                <option value="NOT_BAPTIZED">Not Baptized</option>
-                <option value="BAPTIZED">Baptized</option>
-              </select>
-            </div>
+              <div>
+                <label className="label">Join Date</label>
+                <input
+                  type="date"
+                  name="joinDate"
+                  className="input"
+                  value={formData.joinDate}
+                  onChange={handleChange}
+                />
+              </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn-secondary"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Member'}
-              </button>
+              <div>
+                <label className="label">Baptism Status</label>
+                <select
+                  name="baptismStatus"
+                  className="input"
+                  value={formData.baptismStatus}
+                  onChange={handleChange}
+                >
+                  <option value="NOT_BAPTIZED">Not Baptized</option>
+                  <option value="BAPTIZED">Baptized</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Baptism Date</label>
+                <input
+                  type="date"
+                  name="baptismDate"
+                  className="input"
+                  value={formData.baptismDate}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
-          </form>
-        </div>
+          </div>
+
+          {/* Emergency Contact Section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-secondary-900 mb-4 pb-2 border-b border-gray-200">
+              Emergency Contact
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Contact Name</label>
+                <input
+                  type="text"
+                  name="emergencyContactName"
+                  className="input"
+                  value={formData.emergencyContactName}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="label">Contact Phone</label>
+                <input
+                  type="tel"
+                  name="emergencyContactPhone"
+                  className="input"
+                  value={formData.emergencyContactPhone}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save Member'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
