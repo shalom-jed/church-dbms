@@ -15,7 +15,7 @@ export default function Finance() {
   const [formData, setFormData] = useState({
     categoryId: '',
     amount: '',
-    description: '',
+    description: '', // Shared form field
     date: new Date().toISOString().split('T')[0],
     paymentMethod: 'CASH',
   });
@@ -48,16 +48,27 @@ export default function Finance() {
     e.preventDefault();
 
     try {
-      const data = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-      };
-
       if (activeTab === 'income') {
-        await financeService.createIncomeRecord(data);
+        // Map description to 'notes' for Income Database
+        const incomeData = {
+          categoryId: formData.categoryId,
+          amount: parseFloat(formData.amount),
+          date: formData.date,
+          paymentMethod: formData.paymentMethod,
+          notes: formData.description 
+        };
+        await financeService.createIncomeRecord(incomeData);
         toast.success('Income recorded successfully');
       } else {
-        await financeService.createExpenseRecord(data);
+        // Keep description for Expense Database (It's a required field in DB)
+        const expenseData = {
+          categoryId: formData.categoryId,
+          amount: parseFloat(formData.amount),
+          date: formData.date,
+          paymentMethod: formData.paymentMethod,
+          description: formData.description || 'No description provided' 
+        };
+        await financeService.createExpenseRecord(expenseData);
         toast.success('Expense recorded successfully');
       }
 
@@ -82,48 +93,47 @@ export default function Finance() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      {/* Header */}
-<div className="flex justify-between items-center">
-  <div>
-    <h1 className="text-3xl font-bold text-secondary-900">Finance</h1>
-    <p className="text-secondary-500 mt-1">Track income and expenses</p>
-  </div>
-  <div className="flex items-center space-x-3">
-    <div className="relative group">
-      <button className="btn-secondary flex items-center space-x-2">
-        <Download className="w-4 h-4" />
-        <span>Export</span>
-      </button>
-      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-hard border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-        <button
-          onClick={() => {
-            const records = activeTab === 'income' ? incomeRecords : expenseRecords;
-            const total = records.reduce((sum, r) => sum + r.amount, 0);
-            exportFinanceToPDF(records, activeTab, total);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
-        >
-          <FileText className="w-4 h-4 text-red-500" />
-          <span>Export to PDF</span>
-        </button>
-        <button
-          onClick={() => {
-            const records = activeTab === 'income' ? incomeRecords : expenseRecords;
-            exportFinanceToExcel(records, activeTab);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
-        >
-          <Table className="w-4 h-4 text-green-500" />
-          <span>Export to Excel</span>
-        </button>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-secondary-900">Finance</h1>
+          <p className="text-secondary-500 mt-1">Track income and expenses</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="relative group">
+            <button className="btn-secondary flex items-center space-x-2">
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-hard border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <button
+                onClick={() => {
+                  const records = activeTab === 'income' ? incomeRecords : expenseRecords;
+                  const total = records.reduce((sum, r) => sum + r.amount, 0);
+                  exportFinanceToPDF(records, activeTab, total);
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
+              >
+                <FileText className="w-4 h-4 text-red-500" />
+                <span>Export to PDF</span>
+              </button>
+              <button
+                onClick={() => {
+                  const records = activeTab === 'income' ? incomeRecords : expenseRecords;
+                  exportFinanceToExcel(records, activeTab);
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
+              >
+                <Table className="w-4 h-4 text-green-500" />
+                <span>Export to Excel</span>
+              </button>
+            </div>
+          </div>
+          <button onClick={() => setShowForm(true)} className="btn-primary flex items-center space-x-2">
+            <Plus className="w-5 h-5" />
+            <span>Add Record</span>
+          </button>
+        </div>
       </div>
-    </div>
-    <button onClick={() => setShowForm(true)} className="btn-primary flex items-center space-x-2">
-      <Plus className="w-5 h-5" />
-      <span>Add Record</span>
-    </button>
-  </div>
-</div>
 
       {/* Summary Cards */}
       {summary && (
@@ -191,7 +201,7 @@ export default function Finance() {
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Category</th>
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Amount</th>
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Method</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Description</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Description / Notes</th>
               </tr>
             </thead>
             <tbody>
@@ -311,7 +321,7 @@ export default function Finance() {
                 </div>
 
                 <div>
-                  <label className="label">Description</label>
+                  <label className="label">Description / Notes</label>
                   <textarea
                     className="input"
                     rows={3}

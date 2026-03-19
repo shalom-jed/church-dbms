@@ -32,9 +32,13 @@ export class FinanceService {
   }
 
   static async createIncomeRecord(data: any) {
+    // Safety check: Strip 'description' if the frontend accidentally sends it, map to 'notes'
+    const { description, ...validData } = data;
+    
     const record = await prisma.incomeRecord.create({
       data: {
-        ...data,
+        ...validData,
+        notes: validData.notes || description || undefined,
         date: new Date(data.date || new Date()),
       },
       include: {
