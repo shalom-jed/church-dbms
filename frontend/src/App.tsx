@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import SmallGroups from './pages/SmallGroups';
 import Attendance from './pages/Attendance';
+import Departments from './pages/Departments';
+import Events from './pages/Events';
+import Finance from './pages/Finance';
 
 function App() {
   return (
@@ -55,6 +58,39 @@ function App() {
     <ProtectedRoute>
       <MainLayout>
         <Attendance />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/departments"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Departments />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/events"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Events />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/finance"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Finance />
       </MainLayout>
     </ProtectedRoute>
   }
