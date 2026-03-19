@@ -23,6 +23,9 @@ export default function SmallGroupDetail() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
   
+  // State for viewing a specific attendance record
+  const [selectedAttendance, setSelectedAttendance] = useState<any>(null);
+  
   // Attendance form state
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [meetingTopic, setMeetingTopic] = useState('');
@@ -43,7 +46,6 @@ export default function SmallGroupDetail() {
       const data = await smallGroupService.getById(id!);
       setGroup(data);
       
-      // Initialize attendance records with all group members
       const records: {[key: string]: boolean} = {};
       data.members?.forEach((m: any) => {
         records[m.member.id] = false;
@@ -121,7 +123,6 @@ export default function SmallGroupDetail() {
       setAttendanceNotes('');
       loadAttendanceHistory();
       
-      // Reset attendance records
       const records: {[key: string]: boolean} = {};
       group.members?.forEach((m: any) => {
         records[m.member.id] = false;
@@ -170,7 +171,6 @@ export default function SmallGroupDetail() {
 
   if (!group) return null;
 
-  // Filter out leader from members list and available members
   const groupMembersWithoutLeader = group.members?.filter(
     (membership: any) => membership.member.id !== group.leaderId
   ) || [];
@@ -282,7 +282,7 @@ export default function SmallGroupDetail() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Members List - Takes 2 columns */}
+        {/* Members List */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-secondary-900 flex items-center">
@@ -347,13 +347,17 @@ export default function SmallGroupDetail() {
           {attendanceHistory.length > 0 ? (
             <div className="space-y-3">
               {attendanceHistory.slice(0, 10).map((attendance: any) => (
-                <div key={attendance.id} className="p-3 bg-gray-50 rounded-xl">
+                <div 
+                  key={attendance.id} 
+                  className="p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-primary-50 hover:border-primary-200 border border-transparent transition-all"
+                  onClick={() => setSelectedAttendance(attendance)}
+                >
                   <div className="flex items-center justify-between mb-1">
                     <p className="font-medium text-secondary-900">
                       {new Date(attendance.meetingDate).toLocaleDateString()}
                     </p>
-                    <span className="text-sm font-bold text-primary-600">
-                      {attendance.totalAttendance}/{totalMembersCount}
+                    <span className="text-sm font-bold text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full">
+                      {attendance.totalAttendance}/{attendance.records?.length || 0}
                     </span>
                   </div>
                   {attendance.meetingTopic && (
@@ -370,6 +374,63 @@ export default function SmallGroupDetail() {
           )}
         </div>
       </div>
+
+      {/* View Selected Attendance Modal */}
+      {selectedAttendance && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-hard animate-scale-up flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold text-secondary-900">Meeting Attendance</h2>
+                <p className="text-secondary-500">
+                  {new Date(selectedAttendance.meetingDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+                {selectedAttendance.meetingTopic && (
+                  <p className="text-sm font-medium text-primary-600 mt-1">Topic: {selectedAttendance.meetingTopic}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedAttendance(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
+              <div className="space-y-2">
+                {selectedAttendance.records?.map((record: any) => (
+                  <div key={record.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                        record.present ? 'bg-green-500' : 'bg-red-400'
+                      }`}>
+                        {record.member.firstName[0]}{record.member.lastName[0]}
+                      </div>
+                      <div>
+                        <p className="font-medium text-secondary-900">
+                          {record.member.firstName} {record.member.lastName}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      {record.present ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Present
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full flex items-center">
+                          <XCircle className="w-3 h-3 mr-1" /> Absent
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Member Modal */}
       {showAddMember && (

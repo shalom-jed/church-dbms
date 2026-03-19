@@ -30,3 +30,13 @@ export const getAttendanceReport = asyncHandler(async (req: AuthRequest, res: Re
     data: report,
   });
 });
+
+export const getAbsenteeReport = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { startDate, endDate } = req.query;
+  const report = await ReportService.getAbsenteeReport(startDate as string, endDate as string);
+
+  res.json({
+    success: true,
+    data: report,
+  });
+});

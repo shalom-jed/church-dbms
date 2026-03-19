@@ -16,7 +16,7 @@ model User {
   memberId        String?  @unique
   member          Member?  @relation(fields: [memberId], references: [id])
   assignedGroupId String?  @unique
-assignedGroup   SmallGroup? @relation("GroupLeader", fields: [assignedGroupId], references: [id])
+  assignedGroup   SmallGroup? @relation("GroupLeader", fields: [assignedGroupId], references: [id])
   lastLogin       DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -37,7 +37,7 @@ enum UserRole {
 model Family {
   id             String   @id @default(cuid())
   familyName     String
-  headOfFamilyId String?
+  headOfFamilyId String?  @unique
   headOfFamily   Member?  @relation("FamilyHead", fields: [headOfFamilyId], references: [id])
   members        Member[] @relation("FamilyMembers")
   createdAt      DateTime @default(now())
@@ -62,6 +62,7 @@ model Member {
   baptismStatus           BaptismStatus    @default(NOT_BAPTIZED)
   baptismDate             DateTime?
   membershipStatus        MembershipStatus @default(VISITOR)
+  involvedMinistries      Ministry[]       @default([])
   joinDate                DateTime?
   emergencyContactName    String?
   emergencyContactPhone   String?
@@ -112,6 +113,16 @@ enum MembershipStatus {
   MEMBER
   LEADER
   INACTIVE
+}
+
+enum Ministry {
+  PRAYER
+  MEN
+  WOMEN
+  YOUTH
+  CHILDREN
+  WORSHIP
+  OTHER
 }
 
 model SmallGroup {

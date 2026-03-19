@@ -9,6 +9,8 @@ interface MemberFormProps {
   onClose: () => void;
 }
 
+const MINISTRY_OPTIONS = ['PRAYER', 'MEN', 'WOMEN', 'YOUTH', 'CHILDREN', 'WORSHIP', 'OTHER'];
+
 export default function MemberForm({ member, onClose }: MemberFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -21,6 +23,7 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
     address: '',
     maritalStatus: 'SINGLE',
     membershipStatus: 'VISITOR',
+    involvedMinistries: [] as string[],
     baptismStatus: 'NOT_BAPTIZED',
     baptismDate: '',
     joinDate: '',
@@ -42,6 +45,7 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
         address: member.address || '',
         maritalStatus: member.maritalStatus || 'SINGLE',
         membershipStatus: member.membershipStatus || 'VISITOR',
+        involvedMinistries: (member as any).involvedMinistries || [],
         baptismStatus: member.baptismStatus || 'NOT_BAPTIZED',
         baptismDate: (member as any).baptismDate ? (member as any).baptismDate.split('T')[0] : '',
         joinDate: (member as any).joinDate ? (member as any).joinDate.split('T')[0] : '',
@@ -57,9 +61,14 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
 
     try {
       // Clean up empty strings to null
-      const cleanedData = Object.fromEntries(
+      const cleanedData: any = Object.fromEntries(
         Object.entries(formData).map(([key, value]) => [key, value === '' ? null : value])
       );
+
+      // Reset ministries if they aren't marked as a leader anymore
+      if (cleanedData.membershipStatus !== 'LEADER') {
+        cleanedData.involvedMinistries = [];
+      }
 
       if (member) {
         await memberService.update(member.id, cleanedData);
@@ -81,6 +90,15 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleMinistryToggle = (ministry: string) => {
+    setFormData(prev => ({
+      ...prev,
+      involvedMinistries: prev.involvedMinistries.includes(ministry)
+        ? prev.involvedMinistries.filter(m => m !== ministry)
+        : [...prev.involvedMinistries, ministry]
+    }));
   };
 
   return (
@@ -228,7 +246,7 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
               Church Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className={formData.membershipStatus === 'LEADER' ? "md:col-span-2" : ""}>
                 <label className="label">Membership Status</label>
                 <select
                   name="membershipStatus"
@@ -242,6 +260,27 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                   <option value="LEADER">Leader</option>
                   <option value="INACTIVE">Inactive</option>
                 </select>
+
+                {formData.membershipStatus === 'LEADER' && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <label className="label mb-3">Involved Ministries (Select all that apply) *</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {MINISTRY_OPTIONS.map(ministry => (
+                        <label key={ministry} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.involvedMinistries.includes(ministry)}
+                            onChange={() => handleMinistryToggle(ministry)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
+                          />
+                          <span className="text-sm font-medium text-gray-700 capitalize">
+                            {ministry.toLowerCase()}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -268,16 +307,18 @@ export default function MemberForm({ member, onClose }: MemberFormProps) {
                 </select>
               </div>
 
-              <div>
-                <label className="label">Baptism Date</label>
-                <input
-                  type="date"
-                  name="baptismDate"
-                  className="input"
-                  value={formData.baptismDate}
-                  onChange={handleChange}
-                />
-              </div>
+              {formData.baptismStatus === 'BAPTIZED' && (
+                <div>
+                  <label className="label">Baptism Date</label>
+                  <input
+                    type="date"
+                    name="baptismDate"
+                    className="input"
+                    value={formData.baptismDate}
+                    onChange={handleChange}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

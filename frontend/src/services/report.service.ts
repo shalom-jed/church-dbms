@@ -17,4 +17,11 @@ export const reportService = {
     });
     return response.data.data;
   },
+
+  async getAbsenteeReport(startDate?: string, endDate?: string) {
+    const response = await apiClient.get('/reports/absentees', {
+      params: { startDate, endDate },
+    });
+    return response.data.data;
+  },
 };

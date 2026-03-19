@@ -190,6 +190,21 @@ export default function MemberDetail() {
               <span className="text-secondary-500">Membership Status</span>
               <span className="font-medium text-secondary-900">{member.membershipStatus}</span>
             </div>
+
+            {/* NEW: Ministry details shown if leader */}
+            {member.membershipStatus === 'LEADER' && member.involvedMinistries?.length > 0 && (
+              <div className="py-2 border-b border-gray-100">
+                <span className="text-secondary-500 block mb-2">Involved Ministries</span>
+                <div className="flex flex-wrap gap-2">
+                  {member.involvedMinistries.map((ministry: string) => (
+                    <span key={ministry} className="px-2 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg capitalize border border-primary-100">
+                      {ministry.toLowerCase()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between py-2 border-b border-gray-100">
               <span className="text-secondary-500">Baptism Status</span>
               <span className={`font-medium ${

@@ -73,48 +73,50 @@ export class MemberService {
   }
 
   static async create(data: any, createdById: string) {
-  // Convert date string to DateTime if present
-  const processedData = {
-    ...data,
-    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-    anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : null,
-    baptismDate: data.baptismDate ? new Date(data.baptismDate) : null,
-    joinDate: data.joinDate ? new Date(data.joinDate) : null,
-  };
+    // Convert date string to DateTime if present
+    const processedData = {
+      ...data,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+      anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : null,
+      baptismDate: data.baptismDate ? new Date(data.baptismDate) : null,
+      joinDate: data.joinDate ? new Date(data.joinDate) : null,
+      involvedMinistries: data.involvedMinistries || [],
+    };
 
-  const member = await prisma.member.create({
-    data: {
-      ...processedData,
-      createdById,
-    },
-    include: {
-      family: true,
-    },
-  });
+    const member = await prisma.member.create({
+      data: {
+        ...processedData,
+        createdById,
+      },
+      include: {
+        family: true,
+      },
+    });
 
-  return member;
-}
+    return member;
+  }
 
   static async update(id: string, data: any) {
-  // Convert date strings to DateTime if present
-  const processedData = {
-    ...data,
-    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-    anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : undefined,
-    baptismDate: data.baptismDate ? new Date(data.baptismDate) : undefined,
-    joinDate: data.joinDate ? new Date(data.joinDate) : undefined,
-  };
+    // Convert date strings to DateTime if present
+    const processedData = {
+      ...data,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+      anniversaryDate: data.anniversaryDate ? new Date(data.anniversaryDate) : undefined,
+      baptismDate: data.baptismDate ? new Date(data.baptismDate) : undefined,
+      joinDate: data.joinDate ? new Date(data.joinDate) : undefined,
+      involvedMinistries: data.involvedMinistries || undefined,
+    };
 
-  const member = await prisma.member.update({
-    where: { id },
-    data: processedData,
-    include: {
-      family: true,
-    },
-  });
+    const member = await prisma.member.update({
+      where: { id },
+      data: processedData,
+      include: {
+        family: true,
+      },
+    });
 
-  return member;
-}
+    return member;
+  }
 
   static async delete(id: string) {
     // Check if member has a user account

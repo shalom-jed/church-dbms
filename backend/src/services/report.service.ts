@@ -97,4 +97,52 @@ export class ReportService {
       totalServices: sundayServices.length,
     };
   }
+
+  static async getAbsenteeReport(startDate?: string, endDate?: string) {
+    let dateFilter: any = {};
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      dateFilter = { gte: start, lte: end };
+    }
+
+    // Fetch active members who missed BOTH Sunday Service AND Small Groups
+    const members = await prisma.member.findMany({
+      where: {
+        membershipStatus: { in: ['MEMBER', 'LEADER', 'NEW_BELIEVER'] } // Exclude visitors/inactive
+      },
+      include: {
+        sundayServiceAttendance: {
+          where: dateFilter.gte ? {
+            service: {
+              serviceDate: dateFilter
+            }
+          } : undefined
+        },
+        smallGroupAttendanceRecords: {
+          where: dateFilter.gte ? {
+            present: true,
+            attendance: {
+              meetingDate: dateFilter
+            }
+          } : { present: true }
+        }
+      }
+    });
+
+    // Filter down to users with exactly 0 attendance records for the given period
+    const absentees = members.filter(m => 
+      m.sundayServiceAttendance.length === 0 && m.smallGroupAttendanceRecords.length === 0
+    );
+
+    return absentees.map(m => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      phonePrimary: m.phonePrimary,
+      email: m.email,
+      membershipStatus: m.membershipStatus,
+    }));
+  }
 }
