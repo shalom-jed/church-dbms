@@ -1,4 +1,13 @@
 import { Router } from 'express';
+import * as ReportController from '../controllers/report.controller';
+import { protect } from '../middleware/auth.middleware';
+
 const router = Router();
-// TODO: Add report routes in Part 4
+
+router.use(protect);
+
+router.get('/dashboard', ReportController.getDashboardStats);
+router.get('/membership', ReportController.getMembershipReport);
+router.get('/attendance', ReportController.getAttendanceReport);
+
 export default router;
