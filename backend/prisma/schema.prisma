@@ -1,0 +1,499 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  username        String   @unique
+  password        String
+  role            UserRole @default(MEMBER)
+  memberId        String?  @unique
+  member          Member?  @relation(fields: [memberId], references: [id])
+  assignedGroupId String?  @unique
+assignedGroup   SmallGroup? @relation("GroupLeader", fields: [assignedGroupId], references: [id])
+  lastLogin       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  createdMembers              Member[]                   @relation("CreatedBy")
+  createdSmallGroupAttendance SmallGroupAttendance[]     @relation("AttendanceCreatedBy")
+  createdMessages             Message[]                  @relation("MessageSender")
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  SG_LEADER
+  MEMBER
+}
+
+model Family {
+  id             String   @id @default(cuid())
+  familyName     String
+  headOfFamilyId String?
+  headOfFamily   Member?  @relation("FamilyHead", fields: [headOfFamilyId], references: [id])
+  members        Member[] @relation("FamilyMembers")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@map("families")
+}
+
+model Member {
+  id                      String           @id @default(cuid())
+  firstName               String
+  lastName                String
+  dateOfBirth             DateTime?
+  gender                  Gender
+  phonePrimary            String?
+  phoneAlternate          String?
+  email                   String?          @unique
+  address                 String?
+  photoUrl                String?
+  maritalStatus           MaritalStatus?
+  anniversaryDate         DateTime?
+  baptismStatus           BaptismStatus    @default(NOT_BAPTIZED)
+  baptismDate             DateTime?
+  membershipStatus        MembershipStatus @default(VISITOR)
+  joinDate                DateTime?
+  emergencyContactName    String?
+  emergencyContactPhone   String?
+  familyId                String?
+  family                  Family?          @relation("FamilyMembers", fields: [familyId], references: [id])
+  headOfFamilies          Family[]         @relation("FamilyHead")
+  user                    User?
+  createdById             String?
+  createdBy               User?            @relation("CreatedBy", fields: [createdById], references: [id])
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  
+  smallGroupMemberships         SmallGroupMember[]
+  departmentMemberships         DepartmentMember[]
+  sundayServiceAttendance       SundayServiceAttendance[]
+  eventAttendance               EventAttendance[]
+  smallGroupAttendanceRecords   SmallGroupAttendanceRecord[]
+  departmentAttendanceRecords   DepartmentAttendanceRecord[]
+  incomeRecords                 IncomeRecord[]
+  pledges                       Pledge[]
+  messageRecipients             MessageRecipient[]
+  ledSmallGroups                SmallGroup[]     @relation("GroupLeaderMember")
+  headedDepartments             Department[]     @relation("DepartmentHead")
+  
+  @@map("members")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  WIDOWED
+  DIVORCED
+}
+
+enum BaptismStatus {
+  BAPTIZED
+  NOT_BAPTIZED
+}
+
+enum MembershipStatus {
+  VISITOR
+  NEW_BELIEVER
+  MEMBER
+  LEADER
+  INACTIVE
+}
+
+model SmallGroup {
+  id              String      @id @default(cuid())
+  groupName       String      @unique
+  meetingDay      String?
+  meetingTime     String?
+  meetingLocation String?
+  status          GroupStatus @default(ACTIVE)
+  leaderId        String?     @unique
+  leaderMember    Member?     @relation("GroupLeaderMember", fields: [leaderId], references: [id])
+  leaderUser      User?       @relation("GroupLeader")
+  members         SmallGroupMember[]
+  attendance      SmallGroupAttendance[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("small_groups")
+}
+
+model SmallGroupMember {
+  id         String      @id @default(cuid())
+  groupId    String
+  group      SmallGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId   String
+  member     Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role       GroupRole   @default(MEMBER)
+  joinedDate DateTime    @default(now())
+  leftDate   DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  
+  @@unique([groupId, memberId])
+  @@map("small_group_members")
+}
+
+model SmallGroupAttendance {
+  id              String   @id @default(cuid())
+  groupId         String
+  group           SmallGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  meetingDate     DateTime
+  meetingTopic    String?
+  totalAttendance Int      @default(0)
+  notes           String?
+  createdById     String?
+  createdBy       User?    @relation("AttendanceCreatedBy", fields: [createdById], references: [id])
+  records         SmallGroupAttendanceRecord[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("small_group_attendance")
+}
+
+model SmallGroupAttendanceRecord {
+  id           String                @id @default(cuid())
+  attendanceId String
+  attendance   SmallGroupAttendance  @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       Member                @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  present      Boolean               @default(false)
+  remarks      String?
+  createdAt    DateTime              @default(now())
+  
+  @@unique([attendanceId, memberId])
+  @@map("small_group_attendance_records")
+}
+
+enum GroupStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GroupRole {
+  LEADER
+  CO_LEADER
+  MEMBER
+}
+
+model SundayService {
+  id                String   @id @default(cuid())
+  serviceDate       DateTime @unique
+  totalAttendance   Int      @default(0)
+  membersCount      Int      @default(0)
+  visitorsCount     Int      @default(0)
+  firstTimersCount  Int      @default(0)
+  notes             String?
+  attendanceRecords SundayServiceAttendance[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("sunday_services")
+}
+
+model SundayServiceAttendance {
+  id           String        @id @default(cuid())
+  serviceId    String
+  service      SundayService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  memberId     String?
+  member       Member?       @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  visitorName  String?
+  visitorPhone String?
+  visitorEmail String?
+  isFirstTimer Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  
+  @@map("sunday_service_attendance")
+}
+
+model Department {
+  id              String      @id @default(cuid())
+  departmentName  String      @unique
+  description     String?
+  meetingSchedule String?
+  status          GroupStatus @default(ACTIVE)
+  headId          String?     @unique
+  head            Member?     @relation("DepartmentHead", fields: [headId], references: [id])
+  members         DepartmentMember[]
+  attendance      DepartmentAttendance[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("departments")
+}
+
+model DepartmentMember {
+  id           String     @id @default(cuid())
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role         GroupRole  @default(MEMBER)
+  joinedDate   DateTime   @default(now())
+  leftDate     DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  @@unique([departmentId, memberId])
+  @@map("department_members")
+}
+
+model DepartmentAttendance {
+  id              String   @id @default(cuid())
+  departmentId    String
+  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  meetingDate     DateTime
+  meetingPurpose  String?
+  totalAttendance Int      @default(0)
+  notes           String?
+  records         DepartmentAttendanceRecord[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("department_attendance")
+}
+
+model DepartmentAttendanceRecord {
+  id           String               @id @default(cuid())
+  attendanceId String
+  attendance   DepartmentAttendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  present      Boolean              @default(false)
+  remarks      String?
+  createdAt    DateTime             @default(now())
+  
+  @@unique([attendanceId, memberId])
+  @@map("department_attendance_records")
+}
+
+model Event {
+  id                 String      @id @default(cuid())
+  eventName          String
+  eventDate          DateTime
+  eventTime          String?
+  venue              String?
+  description        String?
+  expectedAttendance Int?
+  actualAttendance   Int         @default(0)
+  status             EventStatus @default(UPCOMING)
+  attendance         EventAttendance[]
+  expenses           EventExpense[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  
+  @@map("events")
+}
+
+model EventAttendance {
+  id           String   @id @default(cuid())
+  eventId      String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId     String?
+  member       Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  visitorName  String?
+  visitorPhone String?
+  createdAt    DateTime @default(now())
+  
+  @@map("event_attendance")
+}
+
+model EventExpense {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  expenseCategory String
+  amount          Float
+  description     String?
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("event_expenses")
+}
+
+enum EventStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
+}
+
+model IncomeCategory {
+  id            String         @id @default(cuid())
+  categoryName  String         @unique
+  description   String?
+  incomeRecords IncomeRecord[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@map("income_categories")
+}
+
+model IncomeRecord {
+  id              String         @id @default(cuid())
+  date            DateTime       @default(now())
+  memberId        String?
+  member          Member?        @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  categoryId      String
+  category        IncomeCategory @relation(fields: [categoryId], references: [id])
+  amount          Float
+  paymentMethod   PaymentMethod
+  referenceNumber String?
+  notes           String?
+  receiptNumber   String?        @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@map("income_records")
+}
+
+model ExpenseCategory {
+  id             String          @id @default(cuid())
+  categoryName   String          @unique
+  description    String?
+  expenseRecords ExpenseRecord[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  
+  @@map("expense_categories")
+}
+
+model ExpenseRecord {
+  id            String          @id @default(cuid())
+  date          DateTime        @default(now())
+  categoryId    String
+  category      ExpenseCategory @relation(fields: [categoryId], references: [id])
+  amount        Float
+  description   String
+  paymentMethod PaymentMethod
+  recipient     String?
+  approvedBy    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@map("expense_records")
+}
+
+model Pledge {
+  id           String       @id @default(cuid())
+  memberId     String
+  member       Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  pledgeAmount Float
+  amountPaid   Float        @default(0)
+  pledgeDate   DateTime     @default(now())
+  purpose      String
+  status       PledgeStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  @@map("pledges")
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CHEQUE
+  CARD
+  MOBILE_MONEY
+}
+
+enum PledgeStatus {
+  ACTIVE
+  FULFILLED
+  CANCELLED
+}
+
+model Message {
+  id            String           @id @default(cuid())
+  senderId      String
+  sender        User             @relation("MessageSender", fields: [senderId], references: [id])
+  recipientType RecipientType
+  recipientId   String?
+  subject       String
+  messageBody   String
+  channel       MessageChannel
+  status        MessageStatus    @default(PENDING)
+  sentAt        DateTime?
+  recipients    MessageRecipient[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  
+  @@map("messages")
+}
+
+model MessageRecipient {
+  id             String         @id @default(cuid())
+  messageId      String
+  message        Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  deliveryStatus DeliveryStatus @default(PENDING)
+  deliveredAt    DateTime?
+  createdAt      DateTime       @default(now())
+  
+  @@map("message_recipients")
+}
+
+enum RecipientType {
+  ALL
+  SMALL_GROUP
+  DEPARTMENT
+  INDIVIDUAL
+}
+
+enum MessageChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+}
+
+model ScheduledReport {
+  id             String     @id @default(cuid())
+  reportType     ReportType
+  recipientEmail String
+  frequency      Frequency
+  lastSentAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  
+  @@map("scheduled_reports")
+}
+
+enum ReportType {
+  MEMBERSHIP
+  ATTENDANCE
+  FINANCIAL
+  COMPREHENSIVE
+}
+
+enum Frequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
