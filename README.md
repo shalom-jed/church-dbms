@@ -33,4 +33,3 @@ backend/   # Express server (Render)
 ## 👤 Author
 
 Shalom Jedidiah — [GitHub](https://github.com/shalom-jed) | [LinkedIn](https://linkedin.com/in/shalom-jed)
-```
