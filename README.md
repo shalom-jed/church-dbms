@@ -1,116 +1,36 @@
-# Church Database Management System (DBMS)
+# Church Database Management System
 
-A production-ready, full-stack database management system managing daily operations.
+A production-ready full-stack system managing church operations.
 
-## 🚀 Live Deployment
+## 🌐 Live Deployment
 
-**Frontend:** https://your-vercel-url.vercel.app
-**Backend:** Running on Render
-**Database:** PostgreSQL on Supabase
+**https://church-dbms.vercel.app/** — Currently in use managing member profiles, 
+attendance tracking, and financial data.
 
-## ✨ Key Features
+## ✨ Features
 
-### Member Directory
-- Track personal profiles, spiritual milestones, leadership roles
-- Organize members by ministry (Youth, Women's, Men's, Children's)
-- Search and filter functionality
-
-### Smart Attendance Tracking
-- Log attendance for Sunday services and small groups
-- Automated absentee detection and reporting
-- Historical attendance records
-
-### Financial Dashboard
-- Record income and expenses
-- Monitor account balances
-- Visual analytics for financial trends
-- Export reports to PDF/Excel
-
-### Admin Interface
-- Secure login with JWT authentication
-- Data management and updates
-- Automated backup and recovery
+- **Member Directory** — profiles, roles, ministry assignments
+- **Attendance Tracking** — service logs with automated reporting
+- **Financial Dashboard** — income/expense tracking with analytics
+- **Admin Interface** — secure login, data management, exports
 
 ## 💻 Tech Stack
 
-| Layer | Technologies |
-|-------|--------------|
-| **Frontend** | React, TypeScript, Vite, Tailwind CSS, Recharts |
-| **Backend** | Node.js, Express.js, TypeScript |
-| **Database** | PostgreSQL, Prisma ORM |
-| **Authentication** | JWT (JSON Web Tokens) |
-| **Deployment** | Vercel (frontend), Render (backend), Supabase (database) |
+React • TypeScript • Vite • Tailwind CSS • Node.js • Express • PostgreSQL • Supabase • Render • Vercel
 
-## 🛠 Local Development
-
-### Prerequisites
-- Node.js 16+
-- PostgreSQL
-- Git
-
-### Backend Setup
-```bash
-cd backend
-npm install
+## 📂 Structure
+```
+frontend/  # React application (Vercel)
+backend/   # Express server (Render)
 ```
 
-Create `.env`:
-```env
-PORT=5000
-DATABASE_URL="postgresql://user:password@localhost:5432/church_db"
-JWT_SECRET="your_secret_key"
-```
-```bash
-npx prisma db push
-npm run dev
-```
+## 🚀 Deployment
 
-### Frontend Setup
-```bash
-cd frontend
-npm install
-```
-
-Create `.env`:
-```env
-VITE_API_URL="http://localhost:5000/api"
-```
-```bash
-npm run dev
-```
-
-## 📊 Current Status
-
-✅ **Live in production** 
-
-✅ **Active users** — Admin
-
-✅ **Deployed across** — Vercel (frontend), Render (backend), Supabase (database)
-
-✅ **Maintained & updated** — bug fixes and new features deployed regularly
-
-## 📁 Project Structure
-```
-church-dbms/
-├── frontend/          # React application
-│   ├── src/
-│   ├── components/
-│   └── pages/
-├── backend/           # Express server
-│   ├── routes/
-│   ├── controllers/
-│   ├── middleware/
-│   └── prisma/
-└── README.md
-```
-
-## 📝 License
-
-Private project for Assembly of God Church, Ruwanwella.
+- **Frontend:** Vercel
+- **Backend:** Render
+- **Database:** Supabase (PostgreSQL)
 
 ## 👤 Author
 
-**Shalom Jedidiah**
-- GitHub: [@shalom-jed](https://github.com/shalom-jed)
-- LinkedIn: [linkedin.com/in/shalom-jed](https://linkedin.com/in/shalom-jed)
-- Email: shalomjedidiah339@gmail.com
+Shalom Jedidiah — [GitHub](https://github.com/shalom-jed) | [LinkedIn](https://linkedin.com/in/shalom-jed)
+```
