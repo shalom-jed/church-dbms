@@ -82,8 +82,11 @@ npm run dev
 ## 📊 Current Status
 
 ✅ **Live in production** 
+
 ✅ **Active users** — Admin
+
 ✅ **Deployed across** — Vercel (frontend), Render (backend), Supabase (database)
+
 ✅ **Maintained & updated** — bug fixes and new features deployed regularly
 
 ## 📁 Project Structure
