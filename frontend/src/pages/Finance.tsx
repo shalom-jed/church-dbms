@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as financeService from '../services/finance.service';
 import toast from 'react-hot-toast';
-import { TrendingUp, TrendingDown, Wallet, Plus, DollarSign, CreditCard } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, DollarSign, CreditCard, Edit, Trash2, X, Download, FileText, Table } from 'lucide-react';
 import { exportFinanceToPDF, exportFinanceToExcel } from '../utils/exportUtils';
-import { Download, FileText, Table } from 'lucide-react';
 
 export default function Finance() {
   const [summary, setSummary] = useState<any>(null);
@@ -12,10 +11,11 @@ export default function Finance() {
   const [categories, setCategories] = useState<any>({ income: [], expense: [] });
   const [activeTab, setActiveTab] = useState<'income' | 'expense'>('income');
   const [showForm, setShowForm] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const [formData, setFormData] = useState({
     categoryId: '',
     amount: '',
-    description: '', // Shared form field
+    description: '',
     date: new Date().toISOString().split('T')[0],
     paymentMethod: 'CASH',
   });
@@ -48,28 +48,27 @@ export default function Finance() {
     e.preventDefault();
 
     try {
-      if (activeTab === 'income') {
-        // Map description to 'notes' for Income Database
-        const incomeData = {
-          categoryId: formData.categoryId,
-          amount: parseFloat(formData.amount),
-          date: formData.date,
-          paymentMethod: formData.paymentMethod,
-          notes: formData.description 
-        };
-        await financeService.createIncomeRecord(incomeData);
-        toast.success('Income recorded successfully');
+      const data = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+      };
+
+      if (editingRecord) {
+        if (activeTab === 'income') {
+          await financeService.updateIncomeRecord(editingRecord.id, data);
+          toast.success('Income record updated');
+        } else {
+          await financeService.updateExpenseRecord(editingRecord.id, data);
+          toast.success('Expense record updated');
+        }
       } else {
-        // Keep description for Expense Database (It's a required field in DB)
-        const expenseData = {
-          categoryId: formData.categoryId,
-          amount: parseFloat(formData.amount),
-          date: formData.date,
-          paymentMethod: formData.paymentMethod,
-          description: formData.description || 'No description provided' 
-        };
-        await financeService.createExpenseRecord(expenseData);
-        toast.success('Expense recorded successfully');
+        if (activeTab === 'income') {
+          await financeService.createIncomeRecord(data);
+          toast.success('Income recorded successfully');
+        } else {
+          await financeService.createExpenseRecord(data);
+          toast.success('Expense recorded successfully');
+        }
       }
 
       setShowForm(false);
@@ -77,6 +76,35 @@ export default function Finance() {
       loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to save record');
+    }
+  };
+
+  const handleEdit = (record: any) => {
+    setEditingRecord(record);
+    setFormData({
+      categoryId: record.categoryId,
+      amount: record.amount.toString(),
+      description: record.description || record.notes || '',
+      date: record.date.split('T')[0],
+      paymentMethod: record.paymentMethod,
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this record?')) return;
+
+    try {
+      if (activeTab === 'income') {
+        await financeService.deleteIncomeRecord(id);
+        toast.success('Income record deleted');
+      } else {
+        await financeService.deleteExpenseRecord(id);
+        toast.success('Expense record deleted');
+      }
+      loadData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete record');
     }
   };
 
@@ -88,7 +116,10 @@ export default function Finance() {
       date: new Date().toISOString().split('T')[0],
       paymentMethod: 'CASH',
     });
+    setEditingRecord(null);
   };
+
+  const currentRecords = activeTab === 'income' ? incomeRecords : expenseRecords;
 
   return (
     <div className="space-y-6">
@@ -107,9 +138,8 @@ export default function Finance() {
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-hard border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
               <button
                 onClick={() => {
-                  const records = activeTab === 'income' ? incomeRecords : expenseRecords;
-                  const total = records.reduce((sum, r) => sum + r.amount, 0);
-                  exportFinanceToPDF(records, activeTab, total);
+                  const total = currentRecords.reduce((sum: number, r: any) => sum + r.amount, 0);
+                  exportFinanceToPDF(currentRecords, activeTab, total);
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
               >
@@ -117,10 +147,7 @@ export default function Finance() {
                 <span>Export to PDF</span>
               </button>
               <button
-                onClick={() => {
-                  const records = activeTab === 'income' ? incomeRecords : expenseRecords;
-                  exportFinanceToExcel(records, activeTab);
-                }}
+                onClick={() => exportFinanceToExcel(currentRecords, activeTab)}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm"
               >
                 <Table className="w-4 h-4 text-green-500" />
@@ -178,7 +205,7 @@ export default function Finance() {
                 : 'border-transparent text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            Income Records
+            Income Records ({incomeRecords.length})
           </button>
           <button
             onClick={() => setActiveTab('expense')}
@@ -188,7 +215,7 @@ export default function Finance() {
                 : 'border-transparent text-secondary-500 hover:text-secondary-700'
             }`}
           >
-            Expense Records
+            Expense Records ({expenseRecords.length})
           </button>
         </div>
 
@@ -201,11 +228,12 @@ export default function Finance() {
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Category</th>
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Amount</th>
                 <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Method</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Description / Notes</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Description</th>
+                <th className="text-right py-3 px-4 text-sm font-bold text-secondary-600 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(activeTab === 'income' ? incomeRecords : expenseRecords).map((record) => (
+              {currentRecords.map((record: any) => (
                 <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-3 px-4 text-sm text-secondary-900">
                     {new Date(record.date).toLocaleDateString()}
@@ -222,15 +250,43 @@ export default function Finance() {
                   <td className="py-3 px-4 text-sm text-secondary-600">
                     {record.description || record.notes || '-'}
                   </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => handleEdit(record)}
+                        className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(record.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {(activeTab === 'income' ? incomeRecords : expenseRecords).length === 0 && (
+          {currentRecords.length === 0 && (
             <div className="text-center py-12">
               <Wallet className="w-16 h-16 mx-auto text-secondary-300 mb-4" />
               <p className="text-secondary-500">No records found</p>
+            </div>
+          )}
+
+          {/* Total Row */}
+          {currentRecords.length > 0 && (
+            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl mt-4">
+              <span className="font-bold text-secondary-900">Total</span>
+              <span className="font-bold text-xl text-primary-600">
+                LKR {currentRecords.reduce((sum: number, r: any) => sum + r.amount, 0).toLocaleString()}
+              </span>
             </div>
           )}
         </div>
@@ -243,16 +299,10 @@ export default function Finance() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-secondary-900">
-                  Add {activeTab === 'income' ? 'Income' : 'Expense'}
+                  {editingRecord ? 'Edit' : 'Add'} {activeTab === 'income' ? 'Income' : 'Expense'}
                 </h2>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
-                  className="text-secondary-400 hover:text-secondary-600 text-2xl"
-                >
-                  ×
+                <button onClick={() => { setShowForm(false); resetForm(); }} className="text-secondary-400 hover:text-secondary-600">
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 
@@ -262,19 +312,12 @@ export default function Finance() {
                   <select
                     className="input"
                     value={formData.categoryId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, categoryId: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                     required
                   >
                     <option value="">Select a category</option>
-                    {(activeTab === 'income'
-                      ? categories.income
-                      : categories.expense
-                    ).map((cat: any) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.categoryName}
-                      </option>
+                    {(activeTab === 'income' ? categories.income : categories.expense).map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
                     ))}
                   </select>
                 </div>
@@ -307,9 +350,7 @@ export default function Finance() {
                   <select
                     className="input"
                     value={formData.paymentMethod}
-                    onChange={(e) =>
-                      setFormData({ ...formData, paymentMethod: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     required
                   >
                     <option value="CASH">Cash</option>
@@ -321,30 +362,19 @@ export default function Finance() {
                 </div>
 
                 <div>
-                  <label className="label">Description / Notes</label>
+                  <label className="label">Description</label>
                   <textarea
                     className="input"
                     rows={3}
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      resetForm();
-                    }}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
+                  <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="btn-secondary">Cancel</button>
                   <button type="submit" className="btn-primary">
-                    Save Record
+                    {editingRecord ? 'Update' : 'Save'} Record
                   </button>
                 </div>
               </form>

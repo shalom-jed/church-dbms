@@ -9,9 +9,7 @@ export interface Department {
   headId?: string;
   head?: any;
   members?: any[];
-  _count?: {
-    members: number;
-  };
+  _count?: { members: number };
 }
 
 export const departmentService = {
@@ -41,10 +39,7 @@ export const departmentService = {
   },
 
   async addMember(departmentId: string, memberId: string, role: string = 'MEMBER') {
-    const response = await apiClient.post(`/departments/${departmentId}/members`, {
-      memberId,
-      role,
-    });
+    const response = await apiClient.post(`/departments/${departmentId}/members`, { memberId, role });
     return response.data.data;
   },
 

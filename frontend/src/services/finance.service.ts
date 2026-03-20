@@ -11,6 +11,16 @@ export async function createIncomeRecord(data: any) {
   return response.data.data;
 }
 
+export async function updateIncomeRecord(id: string, data: any) {
+  const response = await apiClient.put(`/finance/income/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteIncomeRecord(id: string) {
+  const response = await apiClient.delete(`/finance/income/${id}`);
+  return response.data;
+}
+
 export async function getIncomeCategories() {
   const response = await apiClient.get('/finance/income/categories');
   return response.data.data;
@@ -27,6 +37,16 @@ export async function createExpenseRecord(data: any) {
   return response.data.data;
 }
 
+export async function updateExpenseRecord(id: string, data: any) {
+  const response = await apiClient.put(`/finance/expenses/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteExpenseRecord(id: string) {
+  const response = await apiClient.delete(`/finance/expenses/${id}`);
+  return response.data;
+}
+
 export async function getExpenseCategories() {
   const response = await apiClient.get('/finance/expenses/categories');
   return response.data.data;
@@ -34,8 +54,6 @@ export async function getExpenseCategories() {
 
 // Summary
 export async function getSummary(startDate?: string, endDate?: string) {
-  const response = await apiClient.get('/finance/summary', {
-    params: { startDate, endDate },
-  });
+  const response = await apiClient.get('/finance/summary', { params: { startDate, endDate } });
   return response.data.data;
 }

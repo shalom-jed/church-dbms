@@ -11,7 +11,9 @@ import SmallGroups from './pages/SmallGroups';
 import SmallGroupDetail from './pages/SmallGroupDetail';
 import Attendance from './pages/Attendance';
 import Departments from './pages/Departments';
+import DepartmentDetail from './pages/DepartmentDetail';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Finance from './pages/Finance';
 import Reports from './pages/Reports';
 
@@ -22,117 +24,20 @@ function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
-          
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
 
-          <Route
-            path="/members"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Members />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+          <Route path="/members" element={<ProtectedRoute><MainLayout><Members /></MainLayout></ProtectedRoute>} />
+          <Route path="/members/:id" element={<ProtectedRoute><MainLayout><MemberDetail /></MainLayout></ProtectedRoute>} />
+          <Route path="/small-groups" element={<ProtectedRoute><MainLayout><SmallGroups /></MainLayout></ProtectedRoute>} />
+          <Route path="/small-groups/:id" element={<ProtectedRoute><MainLayout><SmallGroupDetail /></MainLayout></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute><MainLayout><Attendance /></MainLayout></ProtectedRoute>} />
+          <Route path="/departments" element={<ProtectedRoute><MainLayout><Departments /></MainLayout></ProtectedRoute>} />
+          <Route path="/departments/:id" element={<ProtectedRoute><MainLayout><DepartmentDetail /></MainLayout></ProtectedRoute>} />
+          <Route path="/events" element={<ProtectedRoute><MainLayout><Events /></MainLayout></ProtectedRoute>} />
+          <Route path="/events/:id" element={<ProtectedRoute><MainLayout><EventDetail /></MainLayout></ProtectedRoute>} />
+          <Route path="/finance" element={<ProtectedRoute><MainLayout><Finance /></MainLayout></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><MainLayout><Reports /></MainLayout></ProtectedRoute>} />
 
-          <Route
-            path="/members/:id"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <MemberDetail />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/small-groups"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <SmallGroups />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/small-groups/:id"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <SmallGroupDetail />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/attendance"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Attendance />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/departments"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Departments />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/events"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Events />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/finance"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Finance />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Reports />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>

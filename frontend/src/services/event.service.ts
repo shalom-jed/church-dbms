@@ -26,6 +26,11 @@ export const eventService = {
     return response.data;
   },
 
+  async recordAttendance(eventId: string, attendees: any[]) {
+    const response = await apiClient.post(`/events/${eventId}/attendance`, { attendees });
+    return response.data.data;
+  },
+
   async addExpense(eventId: string, data: any) {
     const response = await apiClient.post(`/events/${eventId}/expenses`, data);
     return response.data.data;
