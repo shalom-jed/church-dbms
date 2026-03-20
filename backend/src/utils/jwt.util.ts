@@ -5,7 +5,8 @@ export function generateToken(payload: any): string {
     payload,
     process.env.JWT_SECRET as string,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      // The 'as any' tells TypeScript to accept this string without panicking
+      expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any,
     }
   );
 }
