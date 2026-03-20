@@ -4,7 +4,9 @@ import { AppError } from '../middleware/error.middleware';
 const prisma = new PrismaClient();
 
 export class FinanceService {
+  // ==========================================
   // INCOME
+  // ==========================================
   static async getIncomeRecords(filters?: any) {
     const where: any = {};
 
@@ -21,10 +23,7 @@ export class FinanceService {
 
     const records = await prisma.incomeRecord.findMany({
       where,
-      include: {
-        category: true,
-        member: true,
-      },
+      include: { category: true, member: true },
       orderBy: { date: 'desc' },
     });
 
@@ -32,45 +31,51 @@ export class FinanceService {
   }
 
   static async createIncomeRecord(data: any) {
-    // Safety check: Strip 'description' if the frontend accidentally sends it, map to 'notes'
-    const { description, ...validData } = data;
-    
     const record = await prisma.incomeRecord.create({
       data: {
-        ...validData,
-        notes: validData.notes || description || undefined,
+        ...data,
         date: new Date(data.date || new Date()),
       },
-      include: {
-        category: true,
-        member: true,
-      },
+      include: { category: true, member: true },
     });
 
     return record;
   }
 
+  static async updateIncomeRecord(id: string, data: any) {
+    const record = await prisma.incomeRecord.update({
+      where: { id },
+      data: {
+        ...data,
+        date: data.date ? new Date(data.date) : undefined,
+      },
+      include: { category: true, member: true },
+    });
+
+    return record;
+  }
+
+  static async deleteIncomeRecord(id: string) {
+    await prisma.incomeRecord.delete({ where: { id } });
+    return { message: 'Income record deleted successfully' };
+  }
+
   static async getIncomeCategories() {
     const categories = await prisma.incomeCategory.findMany({
-      include: {
-        _count: {
-          select: { incomeRecords: true },
-        },
-      },
+      include: { _count: { select: { incomeRecords: true } } },
     });
 
     return categories;
   }
 
   static async createIncomeCategory(data: any) {
-    const category = await prisma.incomeCategory.create({
-      data,
-    });
-
+    const category = await prisma.incomeCategory.create({ data });
     return category;
   }
 
+  // ==========================================
   // EXPENSES
+  // ==========================================
   static async getExpenseRecords(filters?: any) {
     const where: any = {};
 
@@ -87,9 +92,7 @@ export class FinanceService {
 
     const records = await prisma.expenseRecord.findMany({
       where,
-      include: {
-        category: true,
-      },
+      include: { category: true },
       orderBy: { date: 'desc' },
     });
 
@@ -102,51 +105,54 @@ export class FinanceService {
         ...data,
         date: new Date(data.date || new Date()),
       },
-      include: {
-        category: true,
-      },
+      include: { category: true },
     });
 
     return record;
   }
 
+  static async updateExpenseRecord(id: string, data: any) {
+    const record = await prisma.expenseRecord.update({
+      where: { id },
+      data: {
+        ...data,
+        date: data.date ? new Date(data.date) : undefined,
+      },
+      include: { category: true },
+    });
+
+    return record;
+  }
+
+  static async deleteExpenseRecord(id: string) {
+    await prisma.expenseRecord.delete({ where: { id } });
+    return { message: 'Expense record deleted successfully' };
+  }
+
   static async getExpenseCategories() {
     const categories = await prisma.expenseCategory.findMany({
-      include: {
-        _count: {
-          select: { expenseRecords: true },
-        },
-      },
+      include: { _count: { select: { expenseRecords: true } } },
     });
 
     return categories;
   }
 
   static async createExpenseCategory(data: any) {
-    const category = await prisma.expenseCategory.create({
-      data,
-    });
-
+    const category = await prisma.expenseCategory.create({ data });
     return category;
   }
 
+  // ==========================================
   // PLEDGES
+  // ==========================================
   static async getPledges(filters?: any) {
     const where: any = {};
-
-    if (filters?.status) {
-      where.status = filters.status;
-    }
-
-    if (filters?.memberId) {
-      where.memberId = filters.memberId;
-    }
+    if (filters?.status) where.status = filters.status;
+    if (filters?.memberId) where.memberId = filters.memberId;
 
     const pledges = await prisma.pledge.findMany({
       where,
-      include: {
-        member: true,
-      },
+      include: { member: true },
       orderBy: { pledgeDate: 'desc' },
     });
 
@@ -159,9 +165,7 @@ export class FinanceService {
         ...data,
         pledgeDate: new Date(data.pledgeDate || new Date()),
       },
-      include: {
-        member: true,
-      },
+      include: { member: true },
     });
 
     return pledge;
@@ -171,21 +175,18 @@ export class FinanceService {
     const pledge = await prisma.pledge.update({
       where: { id },
       data,
-      include: {
-        member: true,
-      },
+      include: { member: true },
     });
 
     return pledge;
   }
 
+  // ==========================================
   // SUMMARY
+  // ==========================================
   static async getSummary(startDate?: string, endDate?: string) {
     const dateFilter = startDate && endDate ? {
-      date: {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      },
+      date: { gte: new Date(startDate), lte: new Date(endDate) },
     } : {};
 
     const totalIncome = await prisma.incomeRecord.aggregate({
@@ -194,18 +195,6 @@ export class FinanceService {
     });
 
     const totalExpenses = await prisma.expenseRecord.aggregate({
-      where: dateFilter,
-      _sum: { amount: true },
-    });
-
-    const incomeByCategory = await prisma.incomeRecord.groupBy({
-      by: ['categoryId'],
-      where: dateFilter,
-      _sum: { amount: true },
-    });
-
-    const expenseByCategory = await prisma.expenseRecord.groupBy({
-      by: ['categoryId'],
       where: dateFilter,
       _sum: { amount: true },
     });
@@ -219,8 +208,6 @@ export class FinanceService {
       totalIncome: totalIncome._sum.amount || 0,
       totalExpenses: totalExpenses._sum.amount || 0,
       balance: (totalIncome._sum.amount || 0) - (totalExpenses._sum.amount || 0),
-      incomeByCategory,
-      expenseByCategory,
       pledges: {
         total: activePledges._sum.pledgeAmount || 0,
         paid: activePledges._sum.amountPaid || 0,

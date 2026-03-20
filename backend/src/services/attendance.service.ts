@@ -4,10 +4,14 @@ import { AppError } from '../middleware/error.middleware';
 const prisma = new PrismaClient();
 
 export class AttendanceService {
+  // ==========================================
   // SUNDAY SERVICE ATTENDANCE
+  // ==========================================
   static async createSundayService(data: any) {
+    const serviceDate = new Date(data.serviceDate);
+
     const existing = await prisma.sundayService.findUnique({
-      where: { serviceDate: new Date(data.serviceDate) },
+      where: { serviceDate },
     });
 
     if (existing) {
@@ -16,8 +20,8 @@ export class AttendanceService {
 
     const service = await prisma.sundayService.create({
       data: {
-        serviceDate: new Date(data.serviceDate),
-        notes: data.notes,
+        serviceDate,
+        notes: data.notes || null,
       },
     });
 
@@ -25,6 +29,11 @@ export class AttendanceService {
   }
 
   static async recordSundayAttendance(serviceId: string, attendees: any[]) {
+    // Delete existing records for this service first
+    await prisma.sundayServiceAttendance.deleteMany({
+      where: { serviceId },
+    });
+
     const records = await prisma.$transaction(
       attendees.map((attendee) =>
         prisma.sundayServiceAttendance.create({
@@ -36,7 +45,6 @@ export class AttendanceService {
       )
     );
 
-    // Update counts
     const membersCount = records.filter((r) => r.memberId).length;
     const visitorsCount = records.filter((r) => !r.memberId).length;
     const firstTimersCount = records.filter((r) => r.isFirstTimer).length;
@@ -54,7 +62,7 @@ export class AttendanceService {
     return records;
   }
 
-  static async getSundayServices(limit: number = 10) {
+  static async getSundayServices(limit: number = 20) {
     const services = await prisma.sundayService.findMany({
       include: {
         attendanceRecords: {
@@ -68,7 +76,46 @@ export class AttendanceService {
     return services;
   }
 
+  static async getSundayServiceById(id: string) {
+    const service = await prisma.sundayService.findUnique({
+      where: { id },
+      include: {
+        attendanceRecords: {
+          include: { member: true },
+        },
+      },
+    });
+
+    if (!service) {
+      throw new AppError('Sunday service not found', 404);
+    }
+
+    return service;
+  }
+
+  static async updateSundayService(id: string, data: any) {
+    const service = await prisma.sundayService.update({
+      where: { id },
+      data: {
+        notes: data.notes,
+        ...(data.serviceDate && { serviceDate: new Date(data.serviceDate) }),
+      },
+    });
+
+    return service;
+  }
+
+  static async deleteSundayService(id: string) {
+    await prisma.sundayService.delete({
+      where: { id },
+    });
+
+    return { message: 'Sunday service deleted successfully' };
+  }
+
+  // ==========================================
   // SMALL GROUP ATTENDANCE
+  // ==========================================
   static async recordSmallGroupAttendance(data: any, createdById: string) {
     const { groupId, meetingDate, meetingTopic, notes, attendees } = data;
 
@@ -83,7 +130,6 @@ export class AttendanceService {
       },
     });
 
-    // Create attendance records
     await prisma.$transaction(
       attendees.map((attendee: any) =>
         prisma.smallGroupAttendanceRecord.create({
@@ -115,7 +161,17 @@ export class AttendanceService {
     return attendances;
   }
 
+  static async deleteSmallGroupAttendance(id: string) {
+    await prisma.smallGroupAttendance.delete({
+      where: { id },
+    });
+
+    return { message: 'Attendance record deleted successfully' };
+  }
+
+  // ==========================================
   // DEPARTMENT ATTENDANCE
+  // ==========================================
   static async recordDepartmentAttendance(data: any) {
     const { departmentId, meetingDate, meetingPurpose, notes, attendees } = data;
 
@@ -158,5 +214,13 @@ export class AttendanceService {
     });
 
     return attendances;
+  }
+
+  static async deleteDepartmentAttendance(id: string) {
+    await prisma.departmentAttendance.delete({
+      where: { id },
+    });
+
+    return { message: 'Department attendance deleted successfully' };
   }
 }
