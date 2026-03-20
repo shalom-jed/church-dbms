@@ -58,3 +58,13 @@ Start the frontend development server:
 \`\`\`bash
 npm run dev
 \`\`\`
+
+## 🚀 Live Demo
+* **Frontend Application:** [church-dbms.vercel.app](https://church-dbms.vercel.app)
+* **Backend API Base:** Hosted securely on Render (`https://church-dbms.onrender.com`)
+
+## 🏗️ Architecture & Deployment
+This project is fully deployed and operational in production using the following cloud infrastructure:
+* **Frontend:** Vercel (React, TypeScript, Vite)
+* **Backend:** Render (Node.js, Express)
+* **Database:** Supabase (PostgreSQL)
